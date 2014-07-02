@@ -1,4 +1,4 @@
-function est = simObserver(rsigma, tsigma, tval, bias, ntrials)
+function est = simObserver(rsigma, tsigma, tval, bias, range, ntrials)
 
 % SIMOBSERVER simulation of an experiment using the 2AFC method described 
 % in "A new two-alternative forced choice method for the unbiased 
@@ -6,7 +6,7 @@ function est = simObserver(rsigma, tsigma, tval, bias, ntrials)
 % M Jogan and A. Stocker 
 % Journal of Vision, March 13, 2014, vol. 14 no.3
 % 
-% EST = SIMOBSERVER(RSIGMA, TSIGMA, TVAL, BIAS, RANGE, NTRIALs) simulates 
+% EST = SIMOBSERVER(RSIGMA, TSIGMA, TVAL, BIAS, RANGE, NTRIALS) simulates 
 % NTRIALS of the 2AFC method assuming an observer that, at each trial, chooses which  
 % of the two reference stimuli is closer to a test stimulus. RSIGMA regulates the 
 % gaussian noise distribution for the reference stimuli. TSIGMA regulates the 
