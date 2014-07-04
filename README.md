@@ -3,10 +3,8 @@ psychomatrix
 MATLAB implementation of the observer model in 
 
 M Jogan and A. Stocker 
-
 "A new two-alternative forced choice method for the unbiased 
 characterization of perceptual bias and discriminability"
-
 Journal of Vision, March 13, 2014, vol. 14 no.3
 
 simulateobserver.m runs a sample experiment with a simulated observer. 
