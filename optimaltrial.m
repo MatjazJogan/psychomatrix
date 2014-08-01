@@ -69,7 +69,7 @@ entropy(~entropy) = NaN;
 
 
 
-if nargin > 1
+if nargin > 2
     [dummy I] =  sort(entropy(:),'ascend');
     [r1a r2a] = ind2sub(size(entropy), I);
     rnd = round(1+pert*rand(1));
