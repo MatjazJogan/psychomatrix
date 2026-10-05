@@ -1,0 +1,986 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Psychomatrix Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a lab bench. Controls on top, the two methods side by side (stacked on phones), shared results underneath. */
+:root {
+  --bg: #f3f5f8;
+  --panel: #ffffff;
+  --ink: #0f1722;
+  --ink-2: #485462;
+  --ink-3: #78838f;
+  --rule: #dce2e9;
+  --std: #eb6834;       /* standard 2AFC  (categorical slot 2) */
+  --pmx: #2a78d6;       /* psychomatrix   (categorical slot 1) */
+  --pmx-2: #1baf7a;     /* psychomatrix sigma_r (slot 3) */
+  --truth: #78838f;
+  --div-lo: #2a78d6;
+  --div-mid: #f0efec;
+  --div-hi: #e34948;
+  --seq-lo: #eef1f5;
+  --seq-hi: #1b2633;
+  --font-ui: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141a; --panel: #161d25; --ink: #edf1f5; --ink-2: #b2bcc8; --ink-3: #7d8895;
+    --rule: #28313b; --std: #d95926; --pmx: #3987e5; --pmx-2: #199e70; --truth: #8b96a3;
+    --div-lo: #3987e5; --div-mid: #383835; --div-hi: #e66767; --seq-lo: #1d252e; --seq-hi: #e6ebf0;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141a; --panel: #161d25; --ink: #edf1f5; --ink-2: #b2bcc8; --ink-3: #7d8895;
+  --rule: #28313b; --std: #d95926; --pmx: #3987e5; --pmx-2: #199e70; --truth: #8b96a3;
+  --div-lo: #3987e5; --div-mid: #383835; --div-hi: #e66767; --seq-lo: #1d252e; --seq-hi: #e6ebf0;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--font-ui); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; }
+header.top { padding-block: 36px 8px; }
+.eyebrow { font: 600 12px/1.4 var(--font-data); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 6px; }
+h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.05; margin: 0 0 12px; letter-spacing: -.01em; text-wrap: balance; }
+h2 { font-size: 19px; margin: 0; }
+h3 { font-size: 16px; margin: 0 0 6px; }
+p { margin: 0; }
+.lede { max-width: 68ch; color: var(--ink-2); font-size: 16px; }
+.lede q { font-style: italic; }
+.tabs { display: flex; gap: 4px; margin-top: 22px; border-bottom: 1px solid var(--rule); flex-wrap: wrap; }
+.tabs button { font: 700 14px var(--font-ui); background: none; border: 0; border-bottom: 3px solid transparent; color: var(--ink-3); padding: 10px 14px; cursor: pointer; margin-bottom: -1px; }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+main { padding-block: 20px 60px; display: grid; gap: 18px; }
+section.tab { display: grid; gap: 18px; }
+.card { background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius); padding: 18px; min-width: 0; }
+.controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px 22px; align-items: end; }
+.ctl { display: grid; gap: 4px; min-width: 0; }
+.ctl label, .ctl .lbl { font-size: 13px; color: var(--ink-2); display: flex; justify-content: space-between; gap: 8px; }
+.ctl output, .num { font: 600 13px var(--font-data); color: var(--ink); font-variant-numeric: tabular-nums; }
+.ctl small { color: var(--ink-3); font-size: 12px; line-height: 1.35; }
+input[type=range] { width: 100%; accent-color: var(--ink); }
+select { font: 14px var(--font-ui); padding: 6px 8px; border-radius: 6px; border: 1px solid var(--rule); background: var(--panel); color: var(--ink); width: 100%; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+button.b { font: 700 14px var(--font-ui); padding: 8px 16px; border-radius: 7px; border: 1px solid var(--ink); background: var(--ink); color: var(--panel); cursor: pointer; }
+button.b.ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
+button.b:disabled { opacity: .45; cursor: default; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--pmx); outline-offset: 2px; }
+.status { font: 13px var(--font-data); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 860px) { .compare { grid-template-columns: 1fr; } }
+.method { display: grid; gap: 14px; align-content: start; border-top: 4px solid var(--c); }
+.method.std { --c: var(--std); }
+.method.pmx { --c: var(--pmx); }
+.method header p { color: var(--ink-2); font-size: 14px; }
+.method header .q { font-style: italic; }
+canvas { display: block; width: 100%; }
+canvas.stim { aspect-ratio: 9 / 5; border-radius: 6px; }
+figure { margin: 0; display: grid; gap: 4px; min-width: 0; }
+figcaption { font-size: 13px; color: var(--ink-2); font-weight: 700; }
+.psy { aspect-ratio: 4 / 3; }
+.heat3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.heat3 canvas { aspect-ratio: 1 / 1; }
+.marg3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.marg3 canvas { aspect-ratio: 4 / 3; }
+@media (max-width: 520px) { .heat3, .marg3 { grid-template-columns: 1fr 1fr; } }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--ink-2); align-items: center; }
+.legend i { display: inline-block; width: 18px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.legend i.dash { background: repeating-linear-gradient(90deg, var(--truth) 0 4px, transparent 4px 7px) !important; }
+.divbar { display: grid; grid-template-columns: auto minmax(80px, 220px) auto; gap: 8px; align-items: center; font-size: 12px; color: var(--ink-2); }
+.divbar span.g { height: 10px; border-radius: 3px; background: linear-gradient(90deg, var(--div-lo), var(--div-mid), var(--div-hi)); }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
+td.n { font: 14px var(--font-data); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td .sd { color: var(--ink-3); font-size: 12px; }
+td.na { color: var(--ink-3); font-style: italic; font-size: 13px; }
+th .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.verdict { margin-top: 12px; font-size: 14px; color: var(--ink-2); max-width: 75ch; }
+.verdict b { color: var(--ink); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+.grid2 canvas { aspect-ratio: 3 / 2; }
+.prose { max-width: 75ch; color: var(--ink-2); display: grid; gap: 10px; }
+.note { font-size: 14px; color: var(--ink-2); }
+.prose code, .mono { font: 13px var(--font-data); color: var(--ink); }
+.eq { font: 13px/1.7 var(--font-data); color: var(--ink); background: var(--bg); border-radius: 6px; padding: 10px 12px; overflow-x: auto; white-space: pre; }
+.stage { display: grid; gap: 12px; }
+.stage canvas { aspect-ratio: 9 / 5; border-radius: 8px; max-width: 900px; margin: 0 auto; touch-action: manipulation; }
+.prompt { text-align: center; font-size: 17px; font-weight: 700; min-height: 1.6em; }
+.resp { display: flex; gap: 12px; justify-content: center; }
+.resp button { min-width: 150px; font-size: 16px; padding: 12px 18px; }
+kbd { font: 12px var(--font-data); border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 4px; padding: 1px 6px; color: var(--ink); background: var(--bg); }
+.empty { color: var(--ink-3); font-size: 14px; padding: 24px 0; text-align: center; }
+#tip { position: fixed; z-index: 10; pointer-events: none; background: var(--ink); color: var(--panel); font: 12px/1.45 var(--font-data); padding: 6px 9px; border-radius: 6px; max-width: 260px; opacity: 0; transition: opacity .08s; }
+@media (prefers-reduced-motion: reduce) { #tip { transition: none; } }
+footer { color: var(--ink-3); font-size: 13px; padding-block: 0 40px; }
+footer a, .prose a { color: var(--ink-2); }
+</style>
+</head>
+<body>
+
+<header class="top wrap">
+  <p class="eyebrow">Jogan &amp; Stocker · Journal of Vision 14(3), 2014</p>
+  <h1>Psychomatrix Lab</h1>
+  <p class="lede">Measure the Müller-Lyer illusion on a test line that is also degraded by noise or low contrast, while the reference lines stay clean. Standard 2AFC asks <q>which line is longer, test or reference?</q> The psychomatrix method shows the test together with <em>two</em> references and asks <q>which reference matches the test?</q> Run both methods side by side on a simulated observer whose true parameters you set, or try them yourself.</p>
+  <nav class="tabs" role="tablist">
+    <button id="tabbtn-sim" role="tab" aria-selected="true" aria-controls="tab-sim">Simulated observer</button>
+    <button id="tabbtn-you" role="tab" aria-selected="false" aria-controls="tab-you">Try it yourself</button>
+  </nav>
+</header>
+
+<main class="wrap">
+
+<!-- ======================= SIMULATED OBSERVER ======================= -->
+<section class="tab" id="tab-sim" role="tabpanel" aria-labelledby="tabbtn-sim">
+
+  <div class="card controls">
+    <div class="ctl">
+      <span class="lbl">Illusion</span>
+      <select id="s-fins">
+        <option value="in">Arrowheads &lt;—&gt; (looks shorter)</option>
+        <option value="out">Tails &gt;—&lt; (looks longer)</option>
+        <option value="none">No fins (control)</option>
+      </select>
+    </div>
+    <div class="ctl">
+      <label for="s-bias">Perceptual bias <i>b</i> <output id="o-bias"></output></label>
+      <input id="s-bias" type="range" min="-40" max="40" step="1" value="-20">
+      <small>How much longer or shorter the test looks, in px.</small>
+    </div>
+    <div class="ctl">
+      <label for="s-sr">Reference noise σ<sub>r</sub> <output id="o-sr"></output></label>
+      <input id="s-sr" type="range" min="2" max="12" step="0.5" value="5">
+      <small>Encoding noise for the clean reference lines.</small>
+    </div>
+    <div class="ctl">
+      <span class="lbl">Secondary dimension</span>
+      <select id="s-dim">
+        <option value="noise">Pixel noise on the test</option>
+        <option value="contrast">Low contrast test</option>
+      </select>
+    </div>
+    <div class="ctl">
+      <label for="s-level">Test degradation <output id="o-level"></output></label>
+      <input id="s-level" type="range" min="0" max="100" step="5" value="50">
+      <small>Sets the test noise: σ<sub>t</sub> = σ<sub>r</sub> + 24 × level = <span class="num" id="o-st"></span></small>
+    </div>
+    <div class="ctl">
+      <label for="s-crit">Response criterion <i>c</i> <output id="o-crit"></output></label>
+      <input id="s-crit" type="range" min="-20" max="20" step="1" value="10">
+      <small>Extra evidence needed before calling the hard-to-see test “longer”. Non-perceptual.</small>
+    </div>
+    <div class="ctl">
+      <label for="s-n">Trials per method <output id="o-n"></output></label>
+      <input id="s-n" type="range" min="50" max="400" step="25" value="200">
+    </div>
+    <div class="ctl">
+      <span class="lbl">Speed</span>
+      <select id="s-speed">
+        <option value="watch">Watch (8 trials/s)</option>
+        <option value="fast" selected>Fast (60 trials/s)</option>
+        <option value="instant">Instant</option>
+      </select>
+    </div>
+    <div class="ctl">
+      <div class="btns">
+        <button class="b" id="s-run">Run</button>
+        <button class="b ghost" id="s-step">Step</button>
+        <button class="b ghost" id="s-reset">Reset</button>
+      </div>
+      <span class="status" id="s-status">Trial 0 / 200</span>
+    </div>
+  </div>
+
+  <div class="compare">
+    <article class="card method std">
+      <header>
+        <h2>Standard 2AFC</h2>
+        <p>Test and one reference. <span class="q">“Which line is longer?”</span> References at 13 fixed lengths, method of constant stimuli.</p>
+      </header>
+      <canvas class="stim" id="sim-std-stim" aria-label="Current standard 2AFC trial"></canvas>
+      <figure>
+        <figcaption>Psychometric function</figcaption>
+        <canvas class="psy" id="sim-std-psy" aria-label="Proportion of test-longer responses against reference length"></canvas>
+      </figure>
+      <div class="legend">
+        <span><i style="background:var(--std)"></i>Data and fitted cumulative Gaussian</span>
+        <span><i class="dash"></i>True perceptual bias</span>
+      </div>
+      <p class="note">The fit returns two numbers: the point of subjective equality (PSE) and one slope. The slope reflects √(σ<sub>t</sub>² + σ<sub>r</sub>²), so the two noise sources cannot be told apart, and any response criterion shifts the PSE exactly like a perceptual bias would.</p>
+    </article>
+
+    <article class="card method pmx">
+      <header>
+        <h2>Psychomatrix 2AFC</h2>
+        <p>Test plus two references. <span class="q">“Which reference matches the test?”</span> Each trial picks the reference pair (r<sub>1</sub>, r<sub>2</sub>) with the highest expected information gain.</p>
+      </header>
+      <canvas class="stim" id="sim-pmx-stim" aria-label="Current psychomatrix trial"></canvas>
+      <div class="heat3">
+        <figure><figcaption>Observed</figcaption><canvas id="sim-pmx-obs" aria-label="Observed psychomatrix"></canvas></figure>
+        <figure><figcaption>Model fit</figcaption><canvas id="sim-pmx-fit" aria-label="Fitted psychomatrix"></canvas></figure>
+        <figure><figcaption>Next-trial info</figcaption><canvas id="sim-pmx-info" aria-label="Expected information gain per reference pair"></canvas></figure>
+      </div>
+      <div class="divbar"><span>chose r<sub>1</sub></span><span class="g"></span><span>chose r<sub>2</sub></span></div>
+      <div class="marg3">
+        <figure><figcaption>Bias b</figcaption><canvas id="sim-m-b"></canvas></figure>
+        <figure><figcaption>Test σ<sub>t</sub></figcaption><canvas id="sim-m-st"></canvas></figure>
+        <figure><figcaption>Reference σ<sub>r</sub></figcaption><canvas id="sim-m-sr"></canvas></figure>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--pmx)"></i>Posterior</span>
+        <span><i class="dash"></i>True value</span>
+        <span>Dashed diagonal in the fit marks r<sub>1</sub> + r<sub>2</sub> = 2b̂</span>
+      </div>
+    </article>
+  </div>
+
+  <div class="card">
+    <h3>Estimates against the truth</h3>
+    <div class="tablewrap"><table id="sim-table"></table></div>
+    <p class="verdict" id="sim-verdict"></p>
+  </div>
+
+  <div class="card" style="display:grid;gap:12px">
+    <div>
+      <h3>Sweep the secondary dimension</h3>
+      <p class="prose">Runs both methods at five degradation levels (0 to 100%) using the settings above, then plots each estimate with ±1 posterior SD. Watch the standard PSE drift away from the true bias while its single noise estimate cannot say whether the test or the reference got noisier.</p>
+    </div>
+    <div class="btns"><button class="b" id="sw-run">Run sweep</button><span class="status" id="sw-status">Not run yet</span></div>
+    <div class="grid2">
+      <figure><figcaption>Bias estimate (px)</figcaption><canvas id="sw-bias" aria-label="Bias estimates by degradation level"></canvas></figure>
+      <figure><figcaption>Noise estimates (px)</figcaption><canvas id="sw-noise" aria-label="Noise estimates by degradation level"></canvas></figure>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--std)"></i>Standard: PSE / combined σ</span>
+      <span><i style="background:var(--pmx)"></i>Psychomatrix: b̂ / σ̂<sub>t</sub></span>
+      <span><i style="background:var(--pmx-2)"></i>Psychomatrix: σ̂<sub>r</sub></span>
+      <span><i class="dash"></i>Truth (b, σ<sub>t</sub>, √(σ<sub>t</sub>²+σ<sub>r</sub>²), σ<sub>r</sub>)</span>
+    </div>
+  </div>
+
+  <div class="card prose">
+    <h3>How the model works</h3>
+    <p>The observer encodes the test as t̂ ~ N(t + b, σ<sub>t</sub>²) and each reference as r̂ ~ N(r, σ<sub>r</sub>²), then picks the reference whose estimate lies closer to t̂. With u = r<sub>1</sub> − r<sub>2</sub> and v = r<sub>1</sub> + r<sub>2</sub> − 2t, the probability of choosing r<sub>2</sub> is</p>
+    <div class="eq">P(r₂) = Φ(u/σᵤ)·Φ((v−2b)/σᵥ) + [1−Φ(u/σᵤ)]·[1−Φ((v−2b)/σᵥ)]
+σᵤ = √2·σᵣ          σᵥ = √(2σᵣ² + 4σₜ²)</div>
+    <p>This surface over all (r<sub>1</sub>, r<sub>2</sub>) pairs is the psychomatrix. Its spread across the diagonal depends only on σ<sub>r</sub>, its spread along the diagonal mixes in σ<sub>t</sub>, and its anti-diagonal sits at r<sub>1</sub> + r<sub>2</sub> = 2b. All three parameters are therefore identifiable. Both references share the same visibility, so a preference for the clearer stimulus has nothing to act on.</p>
+    <p>Fitting uses a grid posterior over (b, σ<sub>r</sub>, σ<sub>t</sub>) with a 2% lapse rate. Trial selection minimises the expected posterior entropy, as in <code>optimaltrial.m</code>, and draws at random among the four best pairs to avoid repeating the same triplet. This page is a JavaScript port of <code>psychomatrix.m</code>, <code>optimaltrial.m</code> and <code>simulateobserver.m</code>.</p>
+  </div>
+</section>
+
+<!-- ======================= TRY IT YOURSELF ======================= -->
+<section class="tab" id="tab-you" role="tabpanel" aria-labelledby="tabbtn-you" hidden>
+  <div class="card controls">
+    <div class="ctl">
+      <span class="lbl">Method</span>
+      <select id="h-method">
+        <option value="pmx">Psychomatrix (test + two references)</option>
+        <option value="std">Standard 2AFC (test vs reference)</option>
+      </select>
+    </div>
+    <div class="ctl">
+      <span class="lbl">Illusion</span>
+      <select id="h-fins">
+        <option value="in">Arrowheads &lt;—&gt; (looks shorter)</option>
+        <option value="out">Tails &gt;—&lt; (looks longer)</option>
+        <option value="none">No fins (control)</option>
+      </select>
+    </div>
+    <div class="ctl">
+      <span class="lbl">Secondary dimension</span>
+      <select id="h-dim">
+        <option value="noise">Pixel noise on the test</option>
+        <option value="contrast">Low contrast test</option>
+      </select>
+    </div>
+    <div class="ctl">
+      <label for="h-level">Test degradation <output id="ho-level"></output></label>
+      <input id="h-level" type="range" min="0" max="100" step="10" value="60">
+    </div>
+    <div class="ctl">
+      <span class="lbl">Trials</span>
+      <select id="h-n">
+        <option value="39">39 (about 2 min)</option>
+        <option value="65" selected>65 (about 3 min)</option>
+        <option value="104">104 (about 5 min)</option>
+      </select>
+    </div>
+    <div class="ctl">
+      <span class="lbl">Exposure</span>
+      <select id="h-exp">
+        <option value="700">0.7 s</option>
+        <option value="1500" selected>1.5 s</option>
+        <option value="0">Until response</option>
+      </select>
+    </div>
+    <div class="ctl">
+      <div class="btns">
+        <button class="b" id="h-start">Start run</button>
+        <button class="b ghost" id="h-stop" disabled>Stop</button>
+      </div>
+      <span class="status" id="h-status">Ready</span>
+    </div>
+  </div>
+
+  <div class="card stage">
+    <canvas id="h-stage" aria-label="Stimulus display"></canvas>
+    <p class="prompt" id="h-prompt">Press <kbd>Start run</kbd>, keep your eyes on the centre and answer with <kbd>←</kbd> / <kbd>→</kbd> or the buttons.</p>
+    <div class="resp">
+      <button class="b ghost" id="h-left" disabled>← Left</button>
+      <button class="b ghost" id="h-right" disabled>Right →</button>
+    </div>
+  </div>
+
+  <div class="compare">
+    <article class="card method std">
+      <header><h2>Your standard 2AFC result</h2><p id="h-std-meta">No run yet.</p></header>
+      <figure><figcaption>Psychometric function</figcaption><canvas class="psy" id="h-std-psy"></canvas></figure>
+    </article>
+    <article class="card method pmx">
+      <header><h2>Your psychomatrix result</h2><p id="h-pmx-meta">No run yet.</p></header>
+      <div class="heat3" style="grid-template-columns:1fr 1fr">
+        <figure><figcaption>Observed</figcaption><canvas id="h-pmx-obs"></canvas></figure>
+        <figure><figcaption>Model fit</figcaption><canvas id="h-pmx-fit"></canvas></figure>
+      </div>
+      <div class="divbar"><span>chose r<sub>1</sub></span><span class="g"></span><span>chose r<sub>2</sub></span></div>
+      <div class="marg3">
+        <figure><figcaption>Bias b</figcaption><canvas id="h-m-b"></canvas></figure>
+        <figure><figcaption>Test σ<sub>t</sub></figcaption><canvas id="h-m-st"></canvas></figure>
+        <figure><figcaption>Reference σ<sub>r</sub></figcaption><canvas id="h-m-sr"></canvas></figure>
+      </div>
+    </article>
+  </div>
+
+  <div class="card">
+    <h3>Your runs</h3>
+    <p class="prose" style="margin-bottom:8px">Run both methods, then repeat at a different degradation level. A perceptual bias should stay put as the test gets harder to see; a response bias moves the standard PSE but not the psychomatrix estimate.</p>
+    <div class="tablewrap"><table id="h-log"></table></div>
+  </div>
+</section>
+</main>
+
+<footer class="wrap">
+  <p>Model: M. Jogan and A. A. Stocker, “A new two-alternative forced choice method for the unbiased characterization of perceptual bias and discriminability”, <i>Journal of Vision</i> 14(3):20, 2014. Line lengths are in screen pixels of a 720 × 400 stimulus frame; the test line is 200 px.</p>
+</footer>
+
+<div id="tip" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const LAPSE = 0.02;
+const TEST_LEN = 200;
+
+/* ---------------- math ---------------- */
+function erfc(x) {
+  const z = Math.abs(x), t = 1 / (1 + 0.5 * z);
+  const r = t * Math.exp(-z * z - 1.26551223 + t * (1.00002368 + t * (0.37409196 + t * (0.09678418 +
+    t * (-0.18628806 + t * (0.27886807 + t * (-1.13520398 + t * (1.48851587 + t * (-0.82215223 + t * 0.17087277)))))))));
+  return x >= 0 ? r : 2 - r;
+}
+const Phi = x => 0.5 * erfc(-x / Math.SQRT2);
+function randn() { let u = 0; while (!u) u = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * Math.random()); }
+function geom(a, b, n) { const o = []; for (let i = 0; i < n; i++) o.push(a * Math.pow(b / a, i / (n - 1))); return o; }
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function mulberry(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+/* ---------------- reference grid (offsets from the true test length, px) ---------------- */
+const REF = []; for (let r = -60; r <= 60; r += 10) REF.push(r);
+const NR = REF.length, NC = NR * NR;
+
+/* ---------------- psychomatrix model: grid over (b, sigma_r, sigma_t) ---------------- */
+const BIAS = []; for (let b = -48; b <= 48; b += 4) BIAS.push(b);
+const SIG = geom(2, 40, 10);
+const NB = BIAS.length, NS = SIG.length, NP = NB * NS * NS;
+const pB = new Float64Array(NP), pSr = new Float64Array(NP), pSt = new Float64Array(NP);
+{ let k = 0; for (let ib = 0; ib < NB; ib++) for (let isr = 0; isr < NS; isr++) for (let ist = 0; ist < NS; ist++) { pB[k] = BIAS[ib]; pSr[k] = SIG[isr]; pSt[k] = SIG[ist]; k++; } }
+
+// psychomatrix probability that r2 is chosen as closer to the test (psychomatrix.m)
+function pmxProb(r1, r2, b, sr, st) {
+  const su = Math.SQRT2 * sr, sv = Math.sqrt(2 * sr * sr + 4 * st * st);
+  const a = Phi((r1 - r2) / su), c = Phi((r1 + r2 - 2 * b) / sv);
+  return LAPSE / 2 + (1 - LAPSE) * (a * c + (1 - a) * (1 - c));
+}
+// cell-major tables: PT[c*NP + k]
+const PT = new Float64Array(NC * NP), LP = new Float64Array(NC * NP), LQ = new Float64Array(NC * NP);
+for (let c = 0; c < NC; c++) {
+  const r1 = REF[Math.floor(c / NR)], r2 = REF[c % NR], base = c * NP;
+  for (let k = 0; k < NP; k++) { const p = pmxProb(r1, r2, pB[k], pSr[k], pSt[k]); PT[base + k] = p; LP[base + k] = Math.log(p); LQ[base + k] = Math.log(1 - p); }
+}
+
+function newPmx() { return { post: new Float64Array(NP).fill(1 / NP), hm: new Float64Array(NC), pm: new Float64Array(NC), n: 0, expH: null, H0: Math.log(NP), next: -1, last: null }; }
+
+// expected posterior entropy for every reference pair (optimaltrial.m)
+function pmxExpH(s) {
+  const post = s.post, lp = new Float64Array(NP); let H0 = 0;
+  for (let k = 0; k < NP; k++) { const w = post[k]; if (w > 1e-300) { lp[k] = Math.log(w); H0 -= w * lp[k]; } else lp[k] = -690; }
+  const E = new Float64Array(NC).fill(NaN);
+  for (let i = 0; i < NR; i++) for (let j = i + 1; j < NR; j++) {
+    const c = i * NR + j, base = c * NP; let pY = 0, pN = 0, SY = 0, SN = 0;
+    for (let k = 0; k < NP; k++) {
+      const w = post[k]; if (w < 1e-12) continue;
+      const a = w * PT[base + k], q = w - a;
+      pY += a; pN += q; SY += a * (lp[k] + LP[base + k]); SN += q * (lp[k] + LQ[base + k]);
+    }
+    const e = (pY > 0 ? pY * Math.log(pY) : 0) - SY + (pN > 0 ? pN * Math.log(pN) : 0) - SN;
+    E[c] = e; E[j * NR + i] = e;
+  }
+  s.expH = E; s.H0 = H0; return E;
+}
+function pmxChoose(s, pert) {
+  const E = pmxExpH(s), cand = [];
+  for (let i = 0; i < NR; i++) for (let j = i + 1; j < NR; j++) cand.push(i * NR + j);
+  cand.sort((a, b) => E[a] - E[b]);
+  const c = cand[Math.floor(Math.random() * Math.min(pert, cand.length))];
+  let i = Math.floor(c / NR), j = c % NR;
+  if (Math.random() < 0.5) [i, j] = [j, i];
+  s.next = i * NR + j; return [i, j];
+}
+function pmxUpdate(s, i, j, choseR2) {
+  const c = i * NR + j, base = c * NP, post = s.post; let Z = 0;
+  for (let k = 0; k < NP; k++) { post[k] *= choseR2 ? PT[base + k] : 1 - PT[base + k]; Z += post[k]; }
+  for (let k = 0; k < NP; k++) post[k] /= Z;
+  s.hm[c]++; if (choseR2) s.pm[c]++; s.n++; s.last = { i, j, choseR2 };
+}
+function moments(post, vals) { let m = 0, m2 = 0; for (let k = 0; k < post.length; k++) { m += post[k] * vals[k]; m2 += post[k] * vals[k] * vals[k]; } return { m, sd: Math.sqrt(Math.max(0, m2 - m * m)) }; }
+const pSc = new Float64Array(NP); for (let k = 0; k < NP; k++) pSc[k] = Math.hypot(pSr[k], pSt[k]);
+function pmxEst(s) { return { b: moments(s.post, pB), sr: moments(s.post, pSr), st: moments(s.post, pSt), sc: moments(s.post, pSc) }; }
+function pmxPredictive(s) { const out = new Float64Array(NC); for (let c = 0; c < NC; c++) { let p = 0; const base = c * NP; for (let k = 0; k < NP; k++) p += s.post[k] * PT[base + k]; out[c] = p; } return out; }
+function pmxMarginals(s) {
+  const b = new Float64Array(NB), sr = new Float64Array(NS), st = new Float64Array(NS);
+  for (let k = 0; k < NP; k++) { const w = s.post[k]; b[Math.floor(k / (NS * NS))] += w; sr[Math.floor(k / NS) % NS] += w; st[k % NS] += w; }
+  return { b, sr, st };
+}
+
+/* ---------------- standard 2AFC model: grid over (PSE, sigma_combined) ---------------- */
+const MU = []; for (let m = -60; m <= 60; m += 1) MU.push(m);
+const SC = geom(1, 80, 40);
+const NSP = MU.length * SC.length;
+const sMu = new Float64Array(NSP), sSc = new Float64Array(NSP);
+{ let k = 0; for (const m of MU) for (const s of SC) { sMu[k] = m; sSc[k] = s; k++; } }
+const stdProb = (r, mu, sc) => LAPSE / 2 + (1 - LAPSE) * Phi((mu - r) / sc);   // P("test longer")
+const PS = new Float64Array(NR * NSP);
+for (let l = 0; l < NR; l++) for (let k = 0; k < NSP; k++) PS[l * NSP + k] = stdProb(REF[l], sMu[k], sSc[k]);
+
+function newStd() { return { post: new Float64Array(NSP).fill(1 / NSP), n: new Array(NR).fill(0), k: new Array(NR).fill(0), sched: [], total: 0, last: null }; }
+function stdNext(s) { if (!s.sched.length) s.sched = shuffle([...Array(NR).keys()]); return s.sched.pop(); }
+function stdUpdate(s, l, testLonger) {
+  const post = s.post, base = l * NSP; let Z = 0;
+  for (let k = 0; k < NSP; k++) { post[k] *= testLonger ? PS[base + k] : 1 - PS[base + k]; Z += post[k]; }
+  for (let k = 0; k < NSP; k++) post[k] /= Z;
+  s.n[l]++; if (testLonger) s.k[l]++; s.total++; s.last = { l, testLonger };
+}
+function stdEst(s) { return { mu: moments(s.post, sMu), sc: moments(s.post, sSc) }; }
+function stdCurve(s, xs) {
+  const idx = []; for (let k = 0; k < NSP; k++) if (s.post[k] > 1e-7) idx.push(k);
+  return xs.map(x => { let p = 0; for (const k of idx) p += s.post[k] * stdProb(x, sMu[k], sSc[k]); return p; });
+}
+
+/* ---------------- simulated observer (simulateobserver.m) ---------------- */
+function simStd(o, r) { if (Math.random() < LAPSE) return Math.random() < 0.5; return (o.b + o.st * randn()) - (r + o.sr * randn()) > o.c; }
+function simPmx(o, r1, r2) {
+  if (Math.random() < LAPSE) return Math.random() < 0.5;
+  const t = o.b + o.st * randn();
+  return Math.abs(r1 + o.sr * randn() - t) > Math.abs(r2 + o.sr * randn() - t);   // true = r2 closer
+}
+
+/* ---------------- stimulus layout and drawing ---------------- */
+function jit(a) { return (Math.random() * 2 - 1) * a; }
+function layoutStd(r, testLeft) {
+  const L = { x: 190 + jit(25), y: 200 + jit(35) }, R = { x: 530 + jit(25), y: 200 + jit(35) };
+  const t = testLeft ? L : R, f = testLeft ? R : L;
+  return { test: { x: t.x, y: t.y, len: TEST_LEN }, refs: [{ x: f.x, y: f.y, len: TEST_LEN + r }], seed: (Math.random() * 1e9) | 0 };
+}
+function layoutPmx(rl, rr) {
+  return { test: { x: 360 + jit(20), y: 110 + jit(18), len: TEST_LEN },
+    refs: [{ x: 190 + jit(20), y: 295 + jit(22), len: TEST_LEN + rl }, { x: 530 + jit(20), y: 295 + jit(22), len: TEST_LEN + rr }],
+    seed: (Math.random() * 1e9) | 0 };
+}
+function shaft(ctx, x, y, len, fins, color) {
+  ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  const x1 = x - len / 2, x2 = x + len / 2;
+  ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x2, y);
+  if (fins && fins !== 'none') {
+    const fl = 26, a = 36 * Math.PI / 180, dx = fl * Math.cos(a), dy = fl * Math.sin(a), sg = fins === 'in' ? 1 : -1;
+    ctx.moveTo(x1 + sg * dx, y - dy); ctx.lineTo(x1, y); ctx.lineTo(x1 + sg * dx, y + dy);
+    ctx.moveTo(x2 - sg * dx, y - dy); ctx.lineTo(x2, y); ctx.lineTo(x2 - sg * dx, y + dy);
+  }
+  ctx.stroke();
+}
+function drawStim(cv, spec) {
+  const g = prep(cv); if (!g) return;
+  const { ctx, w } = g, s = w / 720;
+  ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, w, g.h);
+  if (!spec) return;
+  ctx.save(); ctx.scale(s, s);
+  if (spec.fix) {
+    ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = 2; ctx.beginPath();
+    ctx.moveTo(352, 200); ctx.lineTo(368, 200); ctx.moveTo(360, 192); ctx.lineTo(360, 208); ctx.stroke();
+  }
+  if (spec.test) {
+    const t = spec.test, lvl = spec.level;
+    if (spec.dim === 'contrast') {
+      const k = 1 - 0.93 * lvl, v = Math.round(128 - (128 - 17) * k);
+      shaft(ctx, t.x, t.y, t.len, spec.fins, `rgb(${v},${v},${v})`);
+    } else {
+      shaft(ctx, t.x, t.y, t.len, spec.fins, '#111');
+      if (lvl > 0) {
+        const rng = mulberry(spec.seed), B = 4, x0 = t.x - t.len / 2 - 40, x1 = t.x + t.len / 2 + 40, y0 = t.y - 44, y1 = t.y + 44;
+        ctx.globalAlpha = 0.82 * lvl;
+        for (let y = y0; y < y1; y += B) for (let x = x0; x < x1; x += B) { const v = (rng() * 256) | 0; ctx.fillStyle = `rgb(${v},${v},${v})`; ctx.fillRect(x, y, B, B); }
+        ctx.globalAlpha = 1;
+      }
+    }
+  }
+  for (const r of spec.refs || []) shaft(ctx, r.x, r.y, r.len, 'none', '#111');
+  ctx.restore();
+}
+
+/* ---------------- chart helpers ---------------- */
+let TK = {};
+function readTokens() {
+  const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
+  TK = { ink: g('--ink'), ink2: g('--ink-2'), ink3: g('--ink-3'), rule: g('--rule'), panel: g('--panel'), std: g('--std'), pmx: g('--pmx'), pmx2: g('--pmx-2'),
+    truth: g('--truth'), lo: hex(g('--div-lo')), mid: hex(g('--div-mid')), hi: hex(g('--div-hi')), slo: hex(g('--seq-lo')), shi: hex(g('--seq-hi')), data: g('--font-data') };
+}
+function hex(h) { h = h.replace('#', ''); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); }
+function mix(a, b, t) { return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`; }
+function divColor(p) { const t = (p - 0.5) * 2; return t < 0 ? mix(TK.mid, TK.lo, Math.min(1, -t)) : mix(TK.mid, TK.hi, Math.min(1, t)); }
+function prep(cv) {
+  const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+  if (!w || !h) return null;
+  const W = Math.round(w * dpr), H = Math.round(h * dpr);
+  if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+  return { ctx, w, h };
+}
+function txt(ctx, s, x, y, align = 'left', base = 'alphabetic', color = TK.ink3, size = 11) {
+  ctx.fillStyle = color; ctx.font = `${size}px ${TK.data}`; ctx.textAlign = align; ctx.textBaseline = base; ctx.fillText(s, x, y);
+}
+function vline(ctx, x, y0, y1, color, dash) { ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = 1.5; if (dash) ctx.setLineDash(dash); ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke(); ctx.restore(); }
+function marker(ctx, x, y, r, shape, fill) {
+  ctx.beginPath();
+  if (shape === 'square') ctx.rect(x - r * .9, y - r * .9, r * 1.8, r * 1.8);
+  else if (shape === 'diamond') { ctx.moveTo(x, y - r * 1.2); ctx.lineTo(x + r * 1.2, y); ctx.lineTo(x, y + r * 1.2); ctx.lineTo(x - r * 1.2, y); ctx.closePath(); }
+  else ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = fill; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = TK.panel; ctx.stroke();
+}
+const sgn = v => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(Math.abs(v) < 10 && v % 1 ? 1 : 0);
+
+// psychometric function
+function drawPsy(cv, s, truthB) {
+  const g = prep(cv); if (!g) return; const { ctx, w, h } = g;
+  const L = 44, R = 12, T = 12, B = 36, pw = w - L - R, ph = h - T - B;
+  const X = v => L + (v + 66) / 132 * pw, Y = p => T + (1 - p) * ph;
+  ctx.strokeStyle = TK.rule; ctx.lineWidth = 1;
+  for (const p of [0, .5, 1]) { ctx.beginPath(); ctx.moveTo(L, Y(p)); ctx.lineTo(L + pw, Y(p)); ctx.stroke(); txt(ctx, p.toFixed(1), L - 6, Y(p), 'right', 'middle'); }
+  for (const v of [-60, -30, 0, 30, 60]) txt(ctx, sgn(v), X(v), T + ph + 14, 'center', 'top');
+  txt(ctx, 'reference − test (px)', L + pw / 2, h - 2, 'center', 'bottom', TK.ink2);
+  ctx.save(); ctx.translate(11, T + ph / 2); ctx.rotate(-Math.PI / 2); txt(ctx, 'P(test longer)', 0, 0, 'center', 'middle', TK.ink2); ctx.restore();
+  const pts = [];
+  if (truthB != null) { vline(ctx, X(truthB), T, T + ph, TK.truth, [4, 3]); txt(ctx, 'true b', X(truthB) + 4, T + 10, 'left', 'alphabetic', TK.ink2); }
+  if (s && s.total > 0) {
+    const xs = []; for (let x = -66; x <= 66; x += 2) xs.push(x);
+    const ys = stdCurve(s, xs);
+    ctx.strokeStyle = TK.std; ctx.lineWidth = 2; ctx.beginPath(); xs.forEach((x, i) => i ? ctx.lineTo(X(x), Y(ys[i])) : ctx.moveTo(X(x), Y(ys[i]))); ctx.stroke();
+    const e = stdEst(s);
+    vline(ctx, X(e.mu.m), Y(.5) - 10, T + ph, TK.std);
+    txt(ctx, `PSE ${sgn(e.mu.m)}`, X(e.mu.m) + (e.mu.m > 30 ? -4 : 4), T + ph - 6, e.mu.m > 30 ? 'right' : 'left', 'alphabetic', TK.ink);
+    for (let l = 0; l < NR; l++) if (s.n[l]) {
+      const x = X(REF[l]), y = Y(s.k[l] / s.n[l]), r = 3 + Math.min(4, Math.sqrt(s.n[l]));
+      marker(ctx, x, y, r, 'circle', TK.std);
+      pts.push({ x, y, html: `reference ${sgn(REF[l])} px<br>${s.k[l]}/${s.n[l]} “test longer” (${Math.round(100 * s.k[l] / s.n[l])}%)` });
+    }
+  } else txt(ctx, 'no trials yet', L + pw / 2, T + ph / 2 - 14, 'center', 'middle');
+  cv._hit = (mx, my) => { let best = null, bd = 196; for (const p of pts) { const d = (p.x - mx) ** 2 + (p.y - my) ** 2; if (d < bd) { bd = d; best = p.html; } } return best; };
+}
+
+// heatmap over (r1, r2): rows r1 (bottom→top), cols r2
+function drawHeat(cv, opt) {
+  const g = prep(cv); if (!g) return; const { ctx, w, h } = g;
+  const L = 30, B = 30, T = 4, R = 4, size = Math.min(w - L - R, h - T - B), cw = size / NR;
+  const x0 = L, y0 = T;
+  const cx = j => x0 + j * cw, cy = i => y0 + (NR - 1 - i) * cw;
+  const pos = r => (r + 60) / 10 + 0.5;  // offset → cell units
+  for (let i = 0; i < NR; i++) for (let j = 0; j < NR; j++) {
+    const c = i * NR + j, col = opt.color(c);
+    ctx.fillStyle = col || TK.rule; ctx.globalAlpha = col ? 1 : 0.35;
+    ctx.fillRect(cx(j) + 0.5, cy(i) + 0.5, cw - 1, cw - 1);
+  }
+  ctx.globalAlpha = 1;
+  if (opt.ring != null && opt.ring >= 0) { const i = Math.floor(opt.ring / NR), j = opt.ring % NR; ctx.strokeStyle = TK.ink; ctx.lineWidth = 2; ctx.strokeRect(cx(j) + 1, cy(i) + 1, cw - 2, cw - 2); }
+  // diagonal r1 = r2
+  ctx.save(); ctx.beginPath(); ctx.rect(x0, y0, size, size); ctx.clip();
+  ctx.strokeStyle = TK.ink3; ctx.lineWidth = 1; ctx.globalAlpha = .5; ctx.beginPath(); ctx.moveTo(x0, y0 + size); ctx.lineTo(x0 + size, y0); ctx.stroke(); ctx.globalAlpha = 1;
+  if (opt.anti != null) { // r1 + r2 = 2b
+    const b = opt.anti, P = (r2, r1) => [x0 + pos(r2) * cw, y0 + size - pos(r1) * cw];
+    const [ax, ay] = P(-80, 2 * b + 80), [bx, by] = P(2 * b + 80, -80);
+    ctx.strokeStyle = TK.ink; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+  }
+  ctx.restore();
+  for (const v of [-60, 0, 60]) {
+    const j = (v + 60) / 10;
+    txt(ctx, sgn(v), cx(j) + cw / 2, y0 + size + 4, 'center', 'top', TK.ink3, 10);
+    txt(ctx, sgn(v), x0 - 4, cy(j) + cw / 2, 'right', 'middle', TK.ink3, 10);
+  }
+  txt(ctx, 'r₂', x0 + size / 2, y0 + size + 29, 'center', 'bottom', TK.ink2, 11);
+  ctx.save(); ctx.translate(8, y0 + size / 2); ctx.rotate(-Math.PI / 2); txt(ctx, 'r₁', 0, 0, 'center', 'middle', TK.ink2, 11); ctx.restore();
+  cv._hit = (mx, my) => {
+    const j = Math.floor((mx - x0) / cw), i = NR - 1 - Math.floor((my - y0) / cw);
+    if (i < 0 || j < 0 || i >= NR || j >= NR) return null;
+    return `r₁ ${sgn(REF[i])} px · r₂ ${sgn(REF[j])} px<br>${opt.tip(i * NR + j)}`;
+  };
+}
+
+// posterior marginal
+function drawMarg(cv, xs, ps, truth, logx) {
+  const g = prep(cv); if (!g) return; const { ctx, w, h } = g;
+  const L = 6, R = 6, T = 8, B = 20, pw = w - L - R, ph = h - T - B;
+  const f = logx ? Math.log : v => v, a = f(xs[0]), z = f(xs[xs.length - 1]);
+  const X = v => L + (f(v) - a) / (z - a) * pw;
+  let mx = 0; for (const p of ps) mx = Math.max(mx, p);
+  const Y = p => T + ph - (mx ? p / mx : 0) * ph;
+  ctx.strokeStyle = TK.rule; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(L, T + ph); ctx.lineTo(L + pw, T + ph); ctx.stroke();
+  if (mx) {
+    ctx.beginPath(); ctx.moveTo(X(xs[0]), T + ph); xs.forEach((x, i) => ctx.lineTo(X(x), Y(ps[i]))); ctx.lineTo(X(xs[xs.length - 1]), T + ph); ctx.closePath();
+    ctx.fillStyle = TK.pmx; ctx.globalAlpha = .22; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.beginPath(); xs.forEach((x, i) => i ? ctx.lineTo(X(x), Y(ps[i])) : ctx.moveTo(X(x), Y(ps[i]))); ctx.strokeStyle = TK.pmx; ctx.lineWidth = 2; ctx.stroke();
+  }
+  if (truth != null) vline(ctx, X(Math.min(Math.max(truth, xs[0]), xs[xs.length - 1])), T, T + ph, TK.truth, [4, 3]);
+  const ticks = logx ? [2, 5, 10, 20, 40] : [-40, 0, 40];
+  for (const t of ticks) txt(ctx, logx ? String(t) : sgn(t), X(t), T + ph + 4, 'center', 'top', TK.ink3, 10);
+  cv._hit = null;
+}
+
+// sweep line chart
+function drawSweep(cv, series, truths) {
+  const g = prep(cv); if (!g) return; const { ctx, w, h } = g;
+  const L = 40, R = 64, T = 12, B = 34, pw = w - L - R, ph = h - T - B;
+  let lo = Infinity, hi = -Infinity;
+  for (const s of series) for (const p of s.pts) { lo = Math.min(lo, p.m - p.sd); hi = Math.max(hi, p.m + p.sd); }
+  for (const t of truths) for (const v of t.ys) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+  if (!isFinite(lo)) { lo = 0; hi = 1; }
+  const span = Math.max(10, hi - lo); lo -= span * .08; hi += span * .08;
+  const step = span > 60 ? 20 : span > 25 ? 10 : 5; lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
+  const X = v => L + v / 100 * pw, Y = v => T + (hi - v) / (hi - lo) * ph;
+  ctx.strokeStyle = TK.rule; ctx.lineWidth = 1;
+  for (let v = lo; v <= hi + 1e-9; v += step) { ctx.beginPath(); ctx.moveTo(L, Y(v)); ctx.lineTo(L + pw, Y(v)); ctx.stroke(); txt(ctx, sgn(v), L - 6, Y(v), 'right', 'middle'); }
+  for (const v of [0, 25, 50, 75, 100]) txt(ctx, v + '%', X(v), T + ph + 6, 'center', 'top');
+  txt(ctx, 'test degradation', L + pw / 2, h - 2, 'center', 'bottom', TK.ink2);
+  const labels = [];
+  for (const t of truths) {
+    ctx.save(); ctx.strokeStyle = TK.truth; ctx.lineWidth = 1.5; ctx.setLineDash(t.dash || [4, 3]); ctx.beginPath();
+    t.xs.forEach((x, i) => i ? ctx.lineTo(X(x), Y(t.ys[i])) : ctx.moveTo(X(x), Y(t.ys[i]))); ctx.stroke(); ctx.restore();
+  }
+  const pts = [];
+  for (const s of series) {
+    if (!s.pts.length) continue;
+    ctx.strokeStyle = s.color; ctx.lineWidth = 2; ctx.beginPath();
+    s.pts.forEach((p, i) => i ? ctx.lineTo(X(p.x), Y(p.m)) : ctx.moveTo(X(p.x), Y(p.m))); ctx.stroke();
+    for (const p of s.pts) {
+      ctx.strokeStyle = s.color; ctx.lineWidth = 1.5; ctx.globalAlpha = .6; ctx.beginPath(); ctx.moveTo(X(p.x), Y(p.m - p.sd)); ctx.lineTo(X(p.x), Y(p.m + p.sd)); ctx.stroke(); ctx.globalAlpha = 1;
+      marker(ctx, X(p.x), Y(p.m), 4.5, s.shape, s.color);
+      pts.push({ x: X(p.x), y: Y(p.m), html: `${s.name}<br>degradation ${p.x}%: ${p.m.toFixed(1)} ± ${p.sd.toFixed(1)} px${p.truth != null ? `<br>truth ${p.truth.toFixed(1)} px` : ''}` });
+    }
+    const last = s.pts[s.pts.length - 1]; labels.push({ y: Y(last.m), text: s.label, color: s.color });
+  }
+  labels.sort((a, b) => a.y - b.y);
+  for (let i = 1; i < labels.length; i++) if (labels[i].y - labels[i - 1].y < 13) labels[i].y = labels[i - 1].y + 13;
+  for (const l of labels) txt(ctx, l.text, L + pw + 8, l.y, 'left', 'middle', TK.ink, 11);
+  if (!pts.length) txt(ctx, 'run the sweep to fill this chart', L + pw / 2, T + ph / 2, 'center', 'middle');
+  cv._hit = (mx, my) => { let best = null, bd = 196; for (const p of pts) { const d = (p.x - mx) ** 2 + (p.y - my) ** 2; if (d < bd) { bd = d; best = p.html; } } return best; };
+}
+
+function drawPmxSet(ids, s, truth) {
+  const est = s.n ? pmxEst(s) : null;
+  drawHeat($(ids.obs), {
+    color: c => s.hm[c] ? divColor(s.pm[c] / s.hm[c]) : null,
+    tip: c => s.hm[c] ? `chose r₂ ${s.pm[c]}/${s.hm[c]}` : 'not tested yet',
+    ring: s.last ? s.last.i * NR + s.last.j : -1
+  });
+  const pred = pmxPredictive(s);
+  drawHeat($(ids.fit), {
+    color: c => divColor(pred[c]), anti: est ? est.b.m : null,
+    tip: c => `model P(r₂) = ${pred[c].toFixed(2)}${s.hm[c] ? `<br>observed ${s.pm[c]}/${s.hm[c]}` : ''}`
+  });
+  if (ids.info) {
+    const E = s.expH || pmxExpH(s); let mx = 0; const gain = new Float64Array(NC);
+    for (let c = 0; c < NC; c++) { gain[c] = isNaN(E[c]) ? NaN : Math.max(0, s.H0 - E[c]); if (gain[c] > mx) mx = gain[c]; }
+    drawHeat($(ids.info), {
+      color: c => isNaN(gain[c]) ? null : mix(TK.slo, TK.shi, mx ? Math.pow(gain[c] / mx, 0.7) : 0),
+      tip: c => isNaN(gain[c]) ? 'r₁ = r₂ carries no information' : `expected gain ${(gain[c] / Math.LN2).toFixed(3)} bits`,
+      ring: s.next
+    });
+  }
+  const m = pmxMarginals(s);
+  drawMarg($(ids.mb), BIAS, m.b, truth && truth.b, false);
+  drawMarg($(ids.mst), SIG, m.st, truth && truth.st, true);
+  drawMarg($(ids.msr), SIG, m.sr, truth && truth.sr, true);
+}
+
+/* ---------------- tooltips ---------------- */
+const tip = $('#tip');
+document.addEventListener('pointermove', e => {
+  const cv = e.target; const html = cv && cv.tagName === 'CANVAS' && cv._hit ? cv._hit(e.offsetX, e.offsetY) : null;
+  if (!html) { tip.style.opacity = 0; return; }
+  tip.innerHTML = html; tip.style.opacity = 1;
+  const r = tip.getBoundingClientRect(); let x = e.clientX + 14, y = e.clientY + 14;
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+  if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 14;
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+});
+
+/* ======================= SIMULATION TAB ======================= */
+const S = { std: newStd(), pmx: newPmx(), trial: 0, running: false, timer: null, stdSpec: null, pmxSpec: null };
+function readObs() {
+  const b = +$('#s-bias').value, sr = +$('#s-sr').value, level = +$('#s-level').value / 100, c = +$('#s-crit').value;
+  return { b, sr, level, st: sr + 24 * level, c, fins: $('#s-fins').value, dim: $('#s-dim').value, N: +$('#s-n').value };
+}
+function syncOutputs() {
+  const o = readObs();
+  $('#o-bias').textContent = sgn(o.b) + ' px'; $('#o-sr').textContent = o.sr.toFixed(1) + ' px';
+  $('#o-level').textContent = Math.round(o.level * 100) + '%'; $('#o-st').textContent = o.st.toFixed(1) + ' px';
+  $('#o-crit').textContent = sgn(o.c) + ' px'; $('#o-n').textContent = o.N;
+}
+function simStep() {
+  const o = readObs();
+  if (S.trial >= o.N) return false;
+  // standard 2AFC trial
+  const l = stdNext(S.std), r = REF[l], testLeft = Math.random() < .5;
+  stdUpdate(S.std, l, simStd(o, r));
+  S.stdSpec = layoutStd(r, testLeft);
+  // psychomatrix trial
+  const [i, j] = S.pmx.next >= 0 ? [Math.floor(S.pmx.next / NR), S.pmx.next % NR] : pmxChoose(S.pmx, 4);
+  pmxUpdate(S.pmx, i, j, simPmx(o, REF[i], REF[j]));
+  S.pmxSpec = Math.random() < .5 ? layoutPmx(REF[i], REF[j]) : layoutPmx(REF[j], REF[i]);
+  S.trial++;
+  if (S.trial < o.N) pmxChoose(S.pmx, 4); else { pmxExpH(S.pmx); S.pmx.next = -1; }
+  return true;
+}
+function simReset() {
+  simStop(); S.std = newStd(); S.pmx = newPmx(); S.trial = 0; S.stdSpec = null; S.pmxSpec = null;
+  pmxChoose(S.pmx, 4); renderSim();
+}
+function simStop() { S.running = false; clearTimeout(S.timer); $('#s-run').textContent = S.trial >= readObs().N ? 'Run' : (S.trial ? 'Resume' : 'Run'); }
+function simRun() {
+  if (S.running) { simStop(); return; }
+  const o = readObs(); if (S.trial >= o.N) simReset();
+  const speed = $('#s-speed').value;
+  if (speed === 'instant') { while (simStep()); renderSim(); simStop(); return; }
+  S.running = true; $('#s-run').textContent = 'Pause';
+  const per = speed === 'watch' ? 1 : 4, delay = speed === 'watch' ? 125 : 66;
+  const tick = () => {
+    if (!S.running) return;
+    let more = true; for (let n = 0; n < per && more; n++) more = simStep();
+    renderSim();
+    if (more && S.trial < readObs().N) S.timer = setTimeout(tick, delay); else simStop();
+  };
+  tick();
+}
+function stimSpecFor(spec, o) { return spec ? { ...spec, fins: o.fins, dim: o.dim, level: o.level } : null; }
+function renderSim() {
+  readTokens();
+  const o = readObs();
+  syncOutputs();
+  $('#s-status').textContent = `Trial ${S.trial} / ${o.N}`;
+  const demoStd = S.stdSpec || layoutStd(0, true), demoPmx = S.pmxSpec || layoutPmx(-20, 20);
+  drawStim($('#sim-std-stim'), stimSpecFor(demoStd, o));
+  drawStim($('#sim-pmx-stim'), stimSpecFor(demoPmx, o));
+  drawPsy($('#sim-std-psy'), S.std, o.b);
+  drawPmxSet({ obs: '#sim-pmx-obs', fit: '#sim-pmx-fit', info: '#sim-pmx-info', mb: '#sim-m-b', mst: '#sim-m-st', msr: '#sim-m-sr' }, S.pmx, o);
+  renderSimTable(o);
+}
+const f1 = e => `${e.m < 0 ? '−' : '+'}${Math.abs(e.m).toFixed(1)} <span class="sd">± ${e.sd.toFixed(1)}</span>`;
+const f1u = e => `${e.m.toFixed(1)} <span class="sd">± ${e.sd.toFixed(1)}</span>`;
+function renderSimTable(o) {
+  const sc = Math.hypot(o.st, o.sr);
+  const has = S.trial > 0, se = has ? stdEst(S.std) : null, pe = has ? pmxEst(S.pmx) : null;
+  const d = '<td class="na">—</td>';
+  $('#sim-table').innerHTML = `
+    <tr><th>Quantity (px)</th><th>Truth</th><th><span class="sw" style="background:var(--std)"></span>Standard 2AFC</th><th><span class="sw" style="background:var(--pmx)"></span>Psychomatrix</th></tr>
+    <tr><td>Perceptual bias b</td><td class="n">${sgn(o.b)}</td>${has ? `<td class="n">${f1(se.mu)} <span class="sd">(PSE)</span></td><td class="n">${f1(pe.b)}</td>` : d + d}</tr>
+    <tr><td>Test noise σ<sub>t</sub></td><td class="n">${o.st.toFixed(1)}</td><td class="na">not separable</td>${has ? `<td class="n">${f1u(pe.st)}</td>` : d}</tr>
+    <tr><td>Reference noise σ<sub>r</sub></td><td class="n">${o.sr.toFixed(1)}</td><td class="na">not separable</td>${has ? `<td class="n">${f1u(pe.sr)}</td>` : d}</tr>
+    <tr><td>Combined √(σ<sub>t</sub>² + σ<sub>r</sub>²)</td><td class="n">${sc.toFixed(1)}</td>${has ? `<td class="n">${f1u(se.sc)}</td><td class="n">${f1u(pe.sc)}</td>` : d + d}</tr>
+    <tr><td>Response criterion c</td><td class="n">${sgn(o.c)}</td><td class="na">absorbed into the PSE (PSE ≈ b − c = ${sgn(o.b - o.c)})</td><td class="na">does not enter the decision</td></tr>`;
+  $('#sim-verdict').innerHTML = has
+    ? `After ${S.trial} trials each, the standard PSE misses the true bias by <b>${Math.abs(se.mu.m - o.b).toFixed(1)} px</b> and the psychomatrix estimate by <b>${Math.abs(pe.b.m - o.b).toFixed(1)} px</b>. Only the psychomatrix also says how much of the noise belongs to the degraded test (σ̂<sub>t</sub> = ${pe.st.m.toFixed(1)}) versus the clean reference (σ̂<sub>r</sub> = ${pe.sr.m.toFixed(1)}).`
+    : 'Press Run to start both experiments on the same simulated observer.';
+}
+
+/* ---------------- sweep ---------------- */
+const SW = { levels: [0, 25, 50, 75, 100], res: [], running: false };
+function sweepOne(o) {
+  const std = newStd(), pmx = newPmx();
+  for (let t = 0; t < o.N; t++) {
+    const l = stdNext(std); stdUpdate(std, l, simStd(o, REF[l]));
+    const [i, j] = pmxChoose(pmx, 4); pmxUpdate(pmx, i, j, simPmx(o, REF[i], REF[j]));
+  }
+  return { se: stdEst(std), pe: pmxEst(pmx) };
+}
+function runSweep() {
+  if (SW.running) return;
+  SW.running = true; SW.res = []; $('#sw-run').disabled = true;
+  const base = readObs(); let idx = 0;
+  const next = () => {
+    if (idx >= SW.levels.length) { SW.running = false; $('#sw-run').disabled = false; $('#sw-status').textContent = `Done: ${base.N} trials per method per level, σr = ${base.sr}, b = ${sgn(base.b)}, c = ${sgn(base.c)}`; drawSweepCharts(); return; }
+    const lv = SW.levels[idx]; $('#sw-status').textContent = `Running level ${lv}% (${idx + 1} of ${SW.levels.length})…`;
+    setTimeout(() => {
+      const o = { ...base, level: lv / 100, st: base.sr + 24 * lv / 100 };
+      SW.res.push({ lv, o, ...sweepOne(o) }); idx++; drawSweepCharts(); next();
+    }, 20);
+  };
+  next();
+}
+function drawSweepCharts() {
+  readTokens();
+  const R = SW.res, base = readObs(), o0 = R.length ? R[0].o : base;
+  const xs = SW.levels;
+  drawSweep($('#sw-bias'), [
+    { name: 'Standard PSE', label: 'PSE', color: TK.std, shape: 'circle', pts: R.map(r => ({ x: r.lv, m: r.se.mu.m, sd: r.se.mu.sd, truth: r.o.b })) },
+    { name: 'Psychomatrix b̂', label: 'b̂', color: TK.pmx, shape: 'square', pts: R.map(r => ({ x: r.lv, m: r.pe.b.m, sd: r.pe.b.sd, truth: r.o.b })) }
+  ], [{ xs, ys: xs.map(() => o0.b) }]);
+  drawSweep($('#sw-noise'), [
+    { name: 'Standard combined σ', label: 'σ comb', color: TK.std, shape: 'circle', pts: R.map(r => ({ x: r.lv, m: r.se.sc.m, sd: r.se.sc.sd, truth: Math.hypot(r.o.st, r.o.sr) })) },
+    { name: 'Psychomatrix σ̂t', label: 'σ̂t', color: TK.pmx, shape: 'square', pts: R.map(r => ({ x: r.lv, m: r.pe.st.m, sd: r.pe.st.sd, truth: r.o.st })) },
+    { name: 'Psychomatrix σ̂r', label: 'σ̂r', color: TK.pmx2, shape: 'diamond', pts: R.map(r => ({ x: r.lv, m: r.pe.sr.m, sd: r.pe.sr.sd, truth: r.o.sr })) }
+  ], [
+    { xs, ys: xs.map(l => o0.sr + 24 * l / 100) },
+    { xs, ys: xs.map(l => Math.hypot(o0.sr + 24 * l / 100, o0.sr)), dash: [1.5, 3] },
+    { xs, ys: xs.map(() => o0.sr), dash: [6, 4] }
+  ]);
+}
+
+/* ---------------- sim controls ---------------- */
+$('#s-fins').addEventListener('change', e => {
+  const b = $('#s-bias'), v = Math.abs(+b.value) || 20;
+  b.value = e.target.value === 'in' ? -v : e.target.value === 'out' ? v : 0;
+  renderSim();
+});
+for (const id of ['#s-bias', '#s-sr', '#s-level', '#s-crit', '#s-dim']) $(id).addEventListener('input', renderSim);
+$('#s-n').addEventListener('input', () => { if (readObs().N < S.trial) simReset(); else renderSim(); });
+$('#s-run').addEventListener('click', simRun);
+$('#s-step').addEventListener('click', () => { simStop(); if (S.trial >= readObs().N) simReset(); simStep(); renderSim(); simStop(); });
+$('#s-reset').addEventListener('click', simReset);
+$('#sw-run').addEventListener('click', runSweep);
+
+/* ======================= HUMAN TAB ======================= */
+const H = { phase: 'idle', std: null, pmx: null, resStd: null, resPmx: null, cfg: null, trial: 0, cur: null, timers: [], log: [] };
+function hCfg() { return { method: $('#h-method').value, fins: $('#h-fins').value, dim: $('#h-dim').value, level: +$('#h-level').value / 100, N: +$('#h-n').value, exp: +$('#h-exp').value }; }
+function hTimer(fn, ms) { H.timers.push(setTimeout(fn, ms)); }
+function hClear() { H.timers.forEach(clearTimeout); H.timers = []; }
+function hSetButtons(on) { $('#h-left').disabled = !on; $('#h-right').disabled = !on; }
+function hStage(spec) { readTokens(); drawStim($('#h-stage'), spec); H.lastSpec = spec; }
+function hStart() {
+  hClear(); H.cfg = hCfg(); H.trial = 0;
+  if (H.cfg.method === 'std') H.std = newStd(); else H.pmx = newPmx();
+  $('#h-start').disabled = true; $('#h-stop').disabled = false;
+  for (const id of ['#h-method', '#h-fins', '#h-dim', '#h-level', '#h-n', '#h-exp']) $(id).disabled = true;
+  $('#h-prompt').textContent = H.cfg.method === 'std' ? 'Which line is longer?' : 'Which bottom line has the same length as the top line?';
+  hNext();
+}
+function hNext() {
+  const c = H.cfg;
+  if (H.trial >= c.N) return hFinish(true);
+  $('#h-status').textContent = `Trial ${H.trial + 1} / ${c.N}`;
+  let spec;
+  if (c.method === 'std') {
+    const l = stdNext(H.std), testLeft = Math.random() < .5;
+    spec = layoutStd(REF[l], testLeft); H.cur = { l, testLeft };
+  } else {
+    const [i, j] = pmxChoose(H.pmx, 3), leftIsR1 = Math.random() < .5;
+    spec = leftIsR1 ? layoutPmx(REF[i], REF[j]) : layoutPmx(REF[j], REF[i]); H.cur = { i, j, leftIsR1 };
+  }
+  Object.assign(spec, { fins: c.fins, dim: c.dim, level: c.level });
+  H.phase = 'fix'; hSetButtons(false); hStage({ fix: true });
+  hTimer(() => {
+    H.phase = 'resp'; hSetButtons(true); hStage(spec);
+    if (c.exp > 0) hTimer(() => { if (H.phase === 'resp') hStage({}); }, c.exp);
+  }, 450);
+}
+function hRespond(side) {
+  if (H.phase !== 'resp') return;
+  hClear(); H.phase = 'iti'; hSetButtons(false);
+  const c = H.cfg, left = side === 'left';
+  if (c.method === 'std') stdUpdate(H.std, H.cur.l, left === H.cur.testLeft);
+  else pmxUpdate(H.pmx, H.cur.i, H.cur.j, left ? !H.cur.leftIsR1 : H.cur.leftIsR1);
+  H.trial++; hStage({});
+  hTimer(hNext, 300);
+}
+function hFinish(complete) {
+  hClear(); H.phase = 'idle'; hSetButtons(false);
+  $('#h-start').disabled = false; $('#h-stop').disabled = true;
+  for (const id of ['#h-method', '#h-fins', '#h-dim', '#h-level', '#h-n', '#h-exp']) $(id).disabled = false;
+  const c = H.cfg;
+  if (H.trial > 0) {
+    const finsName = { in: 'Arrowheads', out: 'Tails', none: 'No fins' }[c.fins];
+    const meta = `${finsName}, ${c.dim}, degradation ${Math.round(c.level * 100)}%, ${H.trial} trials${complete ? '' : ' (stopped early)'}.`;
+    const row = { method: c.method, fins: finsName, dim: c.dim, level: Math.round(c.level * 100), n: H.trial };
+    if (c.method === 'std') { H.resStd = H.std; $('#h-std-meta').textContent = meta; const e = stdEst(H.std); Object.assign(row, { b: e.mu, sc: e.sc }); }
+    else { pmxExpH(H.pmx); H.pmx.next = -1; H.resPmx = H.pmx; $('#h-pmx-meta').textContent = meta; const e = pmxEst(H.pmx); Object.assign(row, { b: e.b, st: e.st, sr: e.sr, sc: e.sc }); }
+    H.log.push(row);
+  }
+  $('#h-status').textContent = complete ? 'Run complete. Results below.' : 'Stopped.';
+  $('#h-prompt').innerHTML = complete ? 'Done. Change the method or degradation level and start another run.' : 'Run stopped.';
+  hStage(null); renderHuman();
+}
+function renderHuman() {
+  readTokens();
+  $('#ho-level').textContent = $('#h-level').value + '%';
+  if (H.phase === 'idle') {
+    const c = hCfg();
+    const spec = c.method === 'std' ? layoutStd(0, true) : layoutPmx(-20, 20);
+    if (!H._preview || H._previewMethod !== c.method) { H._preview = spec; H._previewMethod = c.method; }
+    hStage({ ...H._preview, fins: c.fins, dim: c.dim, level: c.level });
+  } else if (H.lastSpec !== undefined) drawStim($('#h-stage'), H.lastSpec);
+  drawPsy($('#h-std-psy'), H.resStd, null);
+  drawPmxSet({ obs: '#h-pmx-obs', fit: '#h-pmx-fit', mb: '#h-m-b', mst: '#h-m-st', msr: '#h-m-sr' }, H.resPmx || newPmx(), null);
+  const d = '<td class="na">—</td>';
+  $('#h-log').innerHTML = `<tr><th>#</th><th>Method</th><th>Illusion</th><th>Test</th><th>Trials</th><th>Bias / PSE</th><th>σ<sub>t</sub></th><th>σ<sub>r</sub></th><th>Combined σ</th></tr>` +
+    (H.log.length ? H.log.map((r, i) => `<tr><td class="n">${i + 1}</td><td><span class="sw" style="display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;background:var(${r.method === 'std' ? '--std' : '--pmx'})"></span>${r.method === 'std' ? 'Standard' : 'Psychomatrix'}</td><td>${r.fins}</td><td>${r.dim} ${r.level}%</td><td class="n">${r.n}</td>
+      <td class="n">${f1(r.b)}</td>${r.st ? `<td class="n">${f1u(r.st)}</td><td class="n">${f1u(r.sr)}</td>` : '<td class="na">not separable</td><td class="na">not separable</td>'}<td class="n">${f1u(r.sc)}</td></tr>`).join('')
+      : `<tr><td colspan="9" class="empty">Your finished runs appear here.</td></tr>`);
+}
+$('#h-start').addEventListener('click', hStart);
+$('#h-stop').addEventListener('click', () => hFinish(false));
+$('#h-left').addEventListener('click', () => hRespond('left'));
+$('#h-right').addEventListener('click', () => hRespond('right'));
+for (const id of ['#h-method', '#h-fins', '#h-dim', '#h-level']) $(id).addEventListener('input', renderHuman);
+document.addEventListener('keydown', e => {
+  if (H.phase === 'idle' || $('#tab-you').hidden) return;
+  if (e.key === 'ArrowLeft' || e.key === 'f') { e.preventDefault(); hRespond('left'); }
+  if (e.key === 'ArrowRight' || e.key === 'j') { e.preventDefault(); hRespond('right'); }
+});
+
+/* ======================= tabs, theme, resize ======================= */
+function showTab(name) {
+  for (const t of ['sim', 'you']) { $('#tab-' + t).hidden = t !== name; $('#tabbtn-' + t).setAttribute('aria-selected', String(t === name)); }
+  if (name !== 'you' && H.phase !== 'idle') hFinish(false);
+  redrawAll();
+}
+$('#tabbtn-sim').addEventListener('click', () => showTab('sim'));
+$('#tabbtn-you').addEventListener('click', () => showTab('you'));
+function redrawAll() { if (!$('#tab-sim').hidden) { renderSim(); drawSweepCharts(); } else renderHuman(); }
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redrawAll);
+new MutationObserver(redrawAll).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+let rz; new ResizeObserver(() => { cancelAnimationFrame(rz); rz = requestAnimationFrame(redrawAll); }).observe(document.body);
+
+// open in a working state: a finished example run on the simulated observer
+if (location.hash === '#you') showTab('you');
+pmxChoose(S.pmx, 4);
+while (simStep());
+S.pmx.next = -1;
+renderSim(); drawSweepCharts(); simStop();
+</script>
+</body>
+</html>

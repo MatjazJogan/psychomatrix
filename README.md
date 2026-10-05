@@ -24,3 +24,12 @@ sim = simulateobserver(1, 1.5, 0, 0, linspace(-10,10,31), 200)
 p = sim.psychomatrix;
 imagesc(p)
 ```
+
+Interactive demo
+----------------
+`docs/index.html` is a self-contained browser demo (no build step, open it locally or serve `docs/` with GitHub Pages). It runs a Müller-Lyer line-length experiment in which the test line is also degraded along a secondary dimension (pixel noise or low contrast) and compares:
+
+* **Standard 2AFC** (test vs. one reference, "which is longer?", method of constant stimuli, cumulative-Gaussian fit), and
+* **the psychomatrix method** (test plus two references, "which reference matches the test?", trials placed by expected information gain as in `optimaltrial.m`, model from `psychomatrix.m`).
+
+In the *Simulated observer* tab you set the true bias, reference noise, test degradation and a non-perceptual response criterion, then watch both methods estimate them; a sweep over degradation levels shows the standard PSE absorbing the response criterion and its single slope mixing test and reference noise, while the psychomatrix recovers bias, σ<sub>t</sub> and σ<sub>r</sub> separately. In the *Try it yourself* tab you can run both procedures on yourself.
