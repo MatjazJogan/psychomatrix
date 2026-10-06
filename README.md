@@ -30,7 +30,7 @@ Interactive demo
 `docs/index.html` is a self-contained browser demo (no build step, open it locally or serve `docs/` with GitHub Pages). Visibility is reduced along a secondary dimension (low contrast or pixel noise). Two stimuli are available:
 
 * **Orientation** (Gabor patches): either no context, where target and references differ only in orientation and visibility and the fading target is drawn toward (or pushed from) vertical, or a tilted surround grating (tilt illusion). All patches stay between vertical and the 45° oblique so they are biased relative to the same cardinal.
-* **Size**: a disc surrounded by large or small inducers (Ebbinghaus illusion). Target and reference discs always share the same contrast or noise; only the inducers differ.
+* **Size** (Ebbinghaus illusion): the target and reference discs share one fixed low contrast, and the inducers around the target (small, none, large) are the secondary dimension. Without inducers the setup is symmetric and neither bias is expected.
 
 Each stimulus is measured with **standard 2AFC** (target vs. one reference, method of constant stimuli, cumulative-Gaussian fit) and with **the psychomatrix method** (target plus two references, "which reference matches the target?", trials placed by expected information gain as in `optimaltrial.m`, model from `psychomatrix.m`).
 
