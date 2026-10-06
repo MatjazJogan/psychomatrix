@@ -136,7 +136,7 @@ footer { color: var(--ink-3); font-size: 13px; padding-block: 0 40px; }
 <header class="top wrap">
   <p class="eyebrow">Jogan &amp; Stocker · Journal of Vision 14(3), 2014</p>
   <h1>Psychomatrix Lab</h1>
-  <p class="lede">Measure a contextual illusion while the target gets harder to see. The context (a tilted surround, or inducer circles) stays at full contrast; only the target is degraded by low contrast or noise, and the references stay clean. Visibility changes the illusion itself, so the perceptual bias moves with degradation in both methods. Standard 2AFC (<q>is the target or the reference larger?</q>) also picks up a decision bias whenever target and reference differ in more than the judged dimension, and it grows as the target gets more uncertain; it cannot be separated from the perceptual bias. The psychomatrix method shows the target with <em>two</em> equally clear references and asks <q>which reference matches the target?</q>, which leaves no room for that decision bias. Run both side by side on a simulated observer whose true parameters you set, or try them yourself.</p>
+  <p class="lede">Measure a contextual illusion while the target gets harder to see. Lower contrast or added noise makes the stimulus harder to see: in the orientation task only the target fades, in the Ebbinghaus task the target and reference discs fade together and only the inducers set them apart. Visibility changes the illusion itself, so the perceptual bias moves with degradation in both methods. Standard 2AFC (<q>is the target or the reference larger?</q>) also picks up a decision bias whenever target and reference differ in more than the judged dimension, and it grows as the target gets more uncertain; it cannot be separated from the perceptual bias. The psychomatrix method shows the target with <em>two</em> equally clear references and asks <q>which reference matches the target?</q>, which leaves no room for that decision bias. Run both side by side on a simulated observer whose true parameters you set, or try them yourself.</p>
   <div class="stimpick" role="group" aria-label="Stimulus">
     <button id="pick-gabor" aria-pressed="true"><canvas id="icon-gabor" width="112" height="112"></canvas><span><b>Orientation</b>Tilt illusion · “which is more clockwise?”</span></button>
     <button id="pick-ebb" aria-pressed="false"><canvas id="icon-ebb" width="112" height="112"></canvas><span><b>Size</b>Ebbinghaus illusion · “which disc is larger?”</span></button>
@@ -175,24 +175,24 @@ footer { color: var(--ink-3); font-size: 13px; padding-block: 0 40px; }
     <div class="ctl">
       <span class="lbl">Secondary dimension</span>
       <select id="s-dim">
-        <option value="contrast">Low target contrast</option>
-        <option value="noise">Pixel noise on the target</option>
+        <option value="contrast">Low contrast</option>
+        <option value="noise">Pixel noise</option>
       </select>
     </div>
     <div class="ctl">
-      <label for="s-level"><span>Target degradation</span> <output id="o-level"></output></label>
+      <label for="s-level"><span class="lvl-name">Target degradation</span> <output id="o-level"></output></label>
       <input id="s-level" type="range" min="0" max="100" step="5" value="50">
-      <small>Sets the target noise σ<sub>t</sub> = <span class="num" id="o-st"></span> (grows linearly from σ<sub>r</sub>).</small>
+      <small id="s-level-help"></small>
     </div>
     <div class="ctl">
-      <label for="s-c0"><span>Decision bias, clear target c<sub>0</sub></span> <output id="o-c0"></output></label>
-      <input id="s-c0" type="range" min="-20" max="20" step="1" value="0">
-      <small>From asymmetry between target and reference (e.g. a salient surround). Zero only when they differ in the judged dimension alone.</small>
+      <label for="s-c0"><span>Context decision bias z<sub>0</sub></span> <output id="o-c0"></output></label>
+      <input id="s-c0" type="range" min="-1" max="1" step="0.05" value="0">
+      <small>Criterion shift from asymmetry between target and reference (e.g. salient inducers), in units of the observer’s uncertainty. Zero only when they differ in the judged dimension alone.</small>
     </div>
     <div class="ctl">
       <label for="s-kappa"><span>Decision bias growth κ</span> <output id="o-kappa"></output></label>
       <input id="s-kappa" type="range" min="-1" max="1" step="0.05" value="0.8">
-      <small><span id="s-crit-help"></span> c = c<sub>0</sub> + κ·(σ<sub>t</sub> − σ<sub>r</sub>) = <span class="num" id="o-crit"></span> at the current level.</small>
+      <small><span id="s-crit-help"></span> c = z<sub>0</sub>·√(σ<sub>t</sub>²+σ<sub>r</sub>²) + κ·(σ<sub>t</sub> − σ<sub>r</sub>) = <span class="num" id="o-crit"></span> at the current level.</small>
     </div>
     <div class="ctl">
       <label for="s-n"><span>Trials per method</span> <output id="o-n"></output></label>
@@ -290,7 +290,7 @@ footer { color: var(--ink-3); font-size: 13px; padding-block: 0 40px; }
     <div class="eq">P(r₂) = Φ(u/σᵤ)·Φ((v−2b)/σᵥ) + [1−Φ(u/σᵤ)]·[1−Φ((v−2b)/σᵥ)]
 σᵤ = √2·σᵣ          σᵥ = √(2σᵣ² + 4σₜ²)</div>
     <p>This surface over all (r<sub>1</sub>, r<sub>2</sub>) pairs is the psychomatrix. Its spread across the diagonal depends only on σ<sub>r</sub>, its spread along the diagonal mixes in σ<sub>t</sub>, and its anti-diagonal sits at r<sub>1</sub> + r<sub>2</sub> = 2b. All three parameters are therefore identifiable. Both references share the same contrast and context, so a tendency to favour the clearer stimulus, or to hesitate over the uncertain one, has nothing to act on: the target is never one of the two options.</p>
-    <p>In standard 2AFC the simulated observer answers “target” only when t̂ − r̂ &gt; c, with c = c<sub>0</sub> + κ·(σ<sub>t</sub> − σ<sub>r</sub>). The baseline c<sub>0</sub> comes from any asymmetry between target and reference, such as a salient surround, and is zero only when the two differ in the judged dimension alone; the second term grows as the target becomes more uncertain. The fitted PSE is then b − c, and nothing in the data tells the two apart.</p>
+    <p>In standard 2AFC the simulated observer answers “target” only when t̂ − r̂ &gt; c, with c = z<sub>0</sub>·√(σ<sub>t</sub>²+σ<sub>r</sub>²) + κ·(σ<sub>t</sub> − σ<sub>r</sub>). The first term is a criterion shift caused by any asymmetry between target and reference, such as a salient surround or inducers; it is fixed in units of the observer’s uncertainty, so its effect grows as the comparison gets noisier, and it is zero only when the two differ in the judged dimension alone. The second term grows with any extra uncertainty about the target relative to the references. The fitted PSE is then b − c, and nothing in the data tells the two apart.</p>
     <p>Fitting uses a grid posterior over (b, σ<sub>r</sub>, σ<sub>t</sub>) with a 2% lapse rate. Trial selection minimises the expected posterior entropy, as in <code>optimaltrial.m</code>, and draws at random among the four best pairs to avoid repeating the same triplet. This page is a JavaScript port of <code>psychomatrix.m</code>, <code>optimaltrial.m</code> and <code>simulateobserver.m</code>.</p>
     <p id="stim-notes"></p>
   </div>
@@ -313,12 +313,12 @@ footer { color: var(--ink-3); font-size: 13px; padding-block: 0 40px; }
     <div class="ctl">
       <span class="lbl">Secondary dimension</span>
       <select id="h-dim">
-        <option value="contrast">Low target contrast</option>
-        <option value="noise">Pixel noise on the target</option>
+        <option value="contrast">Low contrast</option>
+        <option value="noise">Pixel noise</option>
       </select>
     </div>
     <div class="ctl">
-      <label for="h-level"><span>Target degradation</span> <output id="ho-level"></output></label>
+      <label for="h-level"><span class="lvl-name">Target degradation</span> <output id="ho-level"></output></label>
       <input id="h-level" type="range" min="0" max="100" step="5" value="80">
     </div>
     <div class="ctl">
@@ -398,7 +398,7 @@ const LAPSE = 0.02;
    The model works on an internal grid (references at -60..60 units). Each family maps one unit to a physical step. */
 const STIMS = {
   gabor: {
-    name: 'Orientation', unit: '°', scale: 0.15,
+    name: 'Orientation', unit: '°', scale: 0.15, symmetric: false, lvlName: 'Target degradation',
     ctx: { none: 'No context: target drawn toward vertical as it fades', neg: 'Surround tilted +15° (target looks counter-clockwise)', pos: 'Surround tilted −15° (target looks clockwise)' }, defCtx: 'none',
     ctxShort: { neg: 'surround +15°', pos: 'surround −15°', none: 'no context' },
     stdQ: '“Which patch is tilted more clockwise?”', stdPrompt: 'Which patch is tilted more clockwise?',
@@ -409,7 +409,7 @@ const STIMS = {
     notes: 'Orientation stimulus: Gabor patches (period 14 px, σ 15 px). The target sits 18–27° clockwise of vertical and the references within ±9° of it, so every patch lies between vertical and the 45° oblique and is biased relative to the same cardinal. Without context, target and references differ only in orientation and visibility: at full visibility the setup is symmetric and no decision bias is expected, and as the target fades its perceived orientation is drawn further toward vertical (or pushed away, depending on the observer). With a surround, an annular grating at 90% contrast tilted ±15° repels the target (tilt illusion) and also makes it more salient than the plain references, so standard 2AFC carries a decision bias even when the target is clearly visible.'
   },
   ebb: {
-    name: 'Size', unit: 'px', scale: 0.25,
+    name: 'Size', unit: 'px', scale: 0.25, symmetric: true, lvlName: 'Disc degradation (all discs)',
     ctx: { neg: 'Large inducers (target looks smaller)', pos: 'Small inducers (target looks larger)', none: 'No inducers (control)' }, defCtx: 'neg',
     ctxShort: { neg: 'large inducers', pos: 'small inducers', none: 'no inducers' },
     stdQ: '“Which disc is larger?”', stdPrompt: 'Which disc is larger?',
@@ -417,7 +417,7 @@ const STIMS = {
     pY: 'P(target larger)', axis: 'reference − target diameter (px)',
     biasHelp: 'Apparent change of the clearly visible target’s diameter, in px.',
     critHelp: 'In standard 2AFC the observer hesitates to call the faint target “larger”, more so the harder it is to see.',
-    notes: 'Size stimulus: a 56 px target disc surrounded by six large (52 px) or ten small (14 px) full-contrast inducers (Ebbinghaus illusion). References are full-contrast discs without inducers, so target and reference are never symmetric and standard 2AFC carries a decision bias even at full visibility. Noise is confined to the target disc, so the inducers stay intact.'
+    notes: 'Size stimulus: a 56 px target disc surrounded by six large (72 px, about 22 px away) or ten small (14 px) full-contrast inducers (Ebbinghaus illusion). The target and the reference discs always share the same contrast or noise; only the inducers differ, so lowering contrast degrades every disc alike and leaves the inducers intact. Large inducers are kept well away from the target because inducers that nearly touch it can weaken or reverse the illusion. The inducers still make target and reference asymmetric, so standard 2AFC carries a decision bias even at full visibility.'
   }
 };
 let STIM = 'gabor', STIM_READY = false;
@@ -543,13 +543,13 @@ function jit(a) { return (Math.random() * 2 - 1) * a; }
 // so all of them are biased relative to the same cardinal
 const baseTheta = () => 18 + Math.random() * 9;
 function layoutStd(r, targetLeft) {
-  const L = { x: 185 + jit(20), y: 200 + jit(25) }, R = { x: 535 + jit(20), y: 200 + jit(25) };
+  const L = { x: 190 + jit(15), y: 200 + jit(20) }, R = { x: 530 + jit(15), y: 200 + jit(20) };
   const t = targetLeft ? L : R, f = targetLeft ? R : L;
   return { test: t, refs: [{ ...f, off: r }], seed: (Math.random() * 1e9) | 0, theta0: baseTheta() };
 }
 function layoutPmx(rl, rr) {
-  return { test: { x: 360 + jit(15), y: 106 + jit(6) },
-    refs: [{ x: 190 + jit(20), y: 300 + jit(15), off: rl }, { x: 530 + jit(20), y: 300 + jit(15), off: rr }],
+  return { test: { x: 360 + jit(15), y: 124 + jit(4) },
+    refs: [{ x: 190 + jit(20), y: 316 + jit(12), off: rl }, { x: 530 + jit(20), y: 316 + jit(12), off: rr }],
     seed: (Math.random() * 1e9) | 0, theta0: baseTheta() };
 }
 
@@ -584,11 +584,9 @@ function renderTarget(F, spec) {
   const t = spec.test, lvl = spec.level, rng = mulberry(spec.seed);
   if (spec.stim === 'ebb') {
     const rot = rng() * Math.PI * 2;
-    if (spec.ctx === 'neg') for (let n = 0; n < 6; n++) { const a = rot + n * Math.PI / 3; disc(F, t.x + 62 * Math.cos(a), t.y + 62 * Math.sin(a), 26, 40); }
+    if (spec.ctx === 'neg') for (let n = 0; n < 6; n++) { const a = rot + n * Math.PI / 3; disc(F, t.x + 86 * Math.cos(a), t.y + 86 * Math.sin(a), 36, 40); }
     if (spec.ctx === 'pos') for (let n = 0; n < 10; n++) { const a = rot + n * Math.PI / 5; disc(F, t.x + 42 * Math.cos(a), t.y + 42 * Math.sin(a), 7, 40); }
-    const kc = spec.dim === 'contrast' ? 1 - 0.96 * lvl : 1;
-    disc(F, t.x, t.y, 28, BG - 88 * kc);
-    if (spec.dim === 'noise' && lvl > 0) noise(F, t.x, t.y, 33, 150 * lvl, spec.seed);
+    ebbDisc(F, spec, t.x, t.y, 28, spec.seed);
   } else {
     if (spec.ctx !== 'none') grating(F, t.x, t.y, spec.theta0 + (spec.ctx === 'neg' ? 15 : -15), 0.9, rng() * 6.283, ringEnv, 107);
     const c = spec.dim === 'contrast' ? 0.9 * (1 - 0.96 * lvl) : 0.9;
@@ -596,9 +594,15 @@ function renderTarget(F, spec) {
     if (spec.dim === 'noise' && lvl > 0) noise(F, t.x, t.y, 44, 150 * lvl, spec.seed);
   }
 }
+// target and reference discs share contrast and noise, so only the inducers distinguish them
+function ebbDisc(F, spec, x, y, r, seed) {
+  const lvl = spec.level, kc = spec.dim === 'contrast' ? 1 - 0.94 * lvl : 1;
+  disc(F, x, y, r, BG - 88 * kc);
+  if (spec.dim === 'noise' && lvl > 0) noise(F, x, y, r + 3, 150 * lvl, seed);
+}
 function renderRef(F, spec, r, n) {
   const s = STIMS[spec.stim];
-  if (spec.stim === 'ebb') disc(F, r.x, r.y, (56 + r.off * s.scale) / 2, 40);
+  if (spec.stim === 'ebb') ebbDisc(F, spec, r.x, r.y, (56 + r.off * s.scale) / 2, spec.seed + 101 * (n + 1));
   else grating(F, r.x, r.y, spec.theta0 + r.off * s.scale, 0.9, hash3(n, 7, spec.seed) * 6.283, gaborEnv, 46);
 }
 const OFF = document.createElement('canvas');
@@ -624,8 +628,8 @@ function drawIcon(cv, stim) {
     ? { stim, ctx: 'neg', dim: 'contrast', level: 0.55, refs: [], seed: 3, theta0: 0 }
     : { stim, ctx: 'neg', dim: 'contrast', level: 0.45, refs: [], seed: 3, theta0: 22 };
   // render a 220 px window around the target
-  const k = cv.width / 220, W = cv.width, H = cv.height, F = { k, W, H, L: new Float32Array(W * H).fill(BG) };
-  spec.test = { x: 110, y: 110 }; renderTarget(F, spec);
+  const k = cv.width / 250, W = cv.width, H = cv.height, F = { k, W, H, L: new Float32Array(W * H).fill(BG) };
+  spec.test = { x: 125, y: 125 }; renderTarget(F, spec);
   const c2 = cv.getContext('2d'), img = c2.createImageData(W, H), d = img.data;
   for (let i = 0, j = 0; i < F.L.length; i++, j += 4) { const v = Math.max(0, Math.min(255, F.L[i] + 0.5 | 0)); d[j] = d[j + 1] = d[j + 2] = v; d[j + 3] = 255; }
   c2.putImageData(img, 0, 0);
@@ -770,7 +774,7 @@ function drawSweep(cv, series, truths, unit) {
   ctx.strokeStyle = TK.rule; ctx.lineWidth = 1;
   for (let v = lo; v <= hi + step * 1e-6; v += step) { ctx.beginPath(); ctx.moveTo(L, Y(v)); ctx.lineTo(L + pw, Y(v)); ctx.stroke(); txt(ctx, sgnP(v, 2), L - 6, Y(v), 'right', 'middle'); }
   for (const v of [0, 25, 50, 75, 100]) txt(ctx, v + '%', X(v), T + ph + 6, 'center', 'top');
-  txt(ctx, 'target degradation', L + pw / 2, h - 2, 'center', 'bottom', TK.ink2);
+  txt(ctx, 'degradation level', L + pw / 2, h - 2, 'center', 'bottom', TK.ink2);
   for (const t of truths) {
     ctx.save(); ctx.strokeStyle = TK.truth; ctx.lineWidth = 1.5; ctx.setLineDash(t.dash || [4, 3]); ctx.beginPath();
     t.xs.forEach((x, i) => i ? ctx.lineTo(X(x), Y(t.ys[i])) : ctx.moveTo(X(x), Y(t.ys[i]))); ctx.stroke(); ctx.restore();
@@ -841,20 +845,26 @@ const fU = (e, u) => `${fmtNum(phys(e.m, u), 2)} <span class="sd">± ${fmtNum(ph
 const S = { std: newStd(), pmx: newPmx(), trial: 0, running: false, timer: null, stdSpec: null, pmxSpec: null };
 // observer at a given degradation level: perceptual bias and target noise both depend on visibility;
 // the decision bias (standard 2AFC only) grows with the extra uncertainty about the target
+// Orientation degrades the target only; Ebbinghaus degrades every disc alike (only the inducers differ).
+// Decision bias (standard 2AFC only): z0 is a criterion from context asymmetry in units of the observer's uncertainty,
+// so its physical size grows as the comparison gets noisier; kappa adds a term for extra uncertainty about the target.
 function obsAt(base, level) {
-  const st = base.sr + 24 * level;
-  return { ...base, level, st, b: base.b0 + (base.b1 - base.b0) * level, c: base.c0 + base.kappa * (st - base.sr) };
+  const sr0 = base.sr0, sr = STIMS[STIM].symmetric ? sr0 + 16 * level : sr0, st = STIMS[STIM].symmetric ? sr : sr0 + 24 * level;
+  return { ...base, level, sr, st, b: base.b0 + (base.b1 - base.b0) * level, c: base.z0 * Math.hypot(st, sr) + base.kappa * (st - sr) };
 }
 function readObs() {
-  const base = { b0: +$('#s-b0').value, b1: +$('#s-b1').value, sr: +$('#s-sr').value, c0: +$('#s-c0').value, kappa: +$('#s-kappa').value,
+  const base = { b0: +$('#s-b0').value, b1: +$('#s-b1').value, sr0: +$('#s-sr').value, z0: +$('#s-c0').value, kappa: +$('#s-kappa').value,
     ctx: $('#s-ctx').value, dim: $('#s-dim').value, N: +$('#s-n').value };
   return obsAt(base, +$('#s-level').value / 100);
 }
 function syncOutputs() {
   const o = readObs(), u = U(), un = ' ' + u.unit;
   $('#o-bias').textContent = sgnP(phys(o.b, u), 2) + un; $('#o-b0').textContent = sgnP(phys(o.b0, u), 2) + un; $('#o-b1').textContent = sgnP(phys(o.b1, u), 2) + un;
-  $('#o-kappa').textContent = sgnP(o.kappa, 2); $('#o-c0').textContent = sgnP(phys(o.c0, u), 2) + un; $('#o-sr').textContent = fmtNum(phys(o.sr, u), 2) + un;
-  $('#o-level').textContent = Math.round(o.level * 100) + '%'; $('#o-st').textContent = fmtNum(phys(o.st, u), 2) + un;
+  $('#o-kappa').textContent = sgnP(o.kappa, 2); $('#o-c0').textContent = sgnP(o.z0, 2) + ' SD'; $('#o-sr').textContent = fmtNum(phys(o.sr0, u), 2) + un;
+  $('#o-level').textContent = Math.round(o.level * 100) + '%';
+  $('#s-level-help').innerHTML = u.symmetric
+    ? `Target and reference discs fade together: σ<sub>t</sub> = σ<sub>r</sub> = <span class="num">${fmtNum(phys(o.st, u), 2)}${un}</span> at this level.`
+    : `Only the target fades: σ<sub>t</sub> = <span class="num">${fmtNum(phys(o.st, u), 2)}${un}</span>, σ<sub>r</sub> stays at ${fmtNum(phys(o.sr, u), 2)}${un}.`;
   $('#o-crit').textContent = sgnP(phys(o.c, u), 2) + un; $('#o-n').textContent = o.N;
 }
 function simStep() {
@@ -915,7 +925,7 @@ function renderSimTable(o, u) {
     <tr><td>Combined √(σ<sub>t</sub>² + σ<sub>r</sub>²)</td><td class="n">${A(sc)}</td>${has ? `<td class="n">${fU(se.sc, u)}</td><td class="n">${fU(pe.sc, u)}</td>` : d + d}</tr>
     <tr><td>Decision bias c</td><td class="n">${P(o.c)}</td><td class="na">mixed into the PSE (PSE ≈ b − c = ${P(o.b - o.c)})</td><td class="na">does not enter the decision</td></tr>`;
   $('#sim-verdict').innerHTML = has
-    ? `After ${S.trial} trials each, the standard PSE misses the perceptual bias by <b>${A(Math.abs(se.mu.m - o.b))} ${un}</b>, because a decision bias of ${P(o.c)} ${un} rides on it at this level; the psychomatrix estimate misses by <b>${A(Math.abs(pe.b.m - o.b))} ${un}</b>. Only the psychomatrix also says how much of the noise belongs to the degraded target (σ̂<sub>t</sub> = ${A(pe.st.m)} ${un}) versus the clean reference (σ̂<sub>r</sub> = ${A(pe.sr.m)} ${un}).`
+    ? `After ${S.trial} trials each, the standard PSE misses the perceptual bias by <b>${A(Math.abs(se.mu.m - o.b))} ${un}</b>, because a decision bias of ${P(o.c)} ${un} rides on it at this level; the psychomatrix estimate misses by <b>${A(Math.abs(pe.b.m - o.b))} ${un}</b>. ${u.symmetric ? `Only the psychomatrix also estimates target and reference noise separately (σ̂<sub>t</sub> = ${A(pe.st.m)}, σ̂<sub>r</sub> = ${A(pe.sr.m)} ${un}), confirming here that they degrade together.` : `Only the psychomatrix also says how much of the noise belongs to the degraded target (σ̂<sub>t</sub> = ${A(pe.st.m)} ${un}) versus the clean reference (σ̂<sub>r</sub> = ${A(pe.sr.m)} ${un}).`}`
     : 'Press Run to start both experiments on the same simulated observer.';
 }
 
@@ -936,7 +946,7 @@ function runSweep() {
   const next = () => {
     if (idx >= SW.levels.length) {
       SW.running = false; $('#sw-run').disabled = false;
-      $('#sw-status').textContent = `Done: ${base.N} trials per method per level, σr = ${fmtNum(phys(base.sr, u), 2)} ${u.unit}, b from ${sgnP(phys(base.b0, u), 2)} to ${sgnP(phys(base.b1, u), 2)} ${u.unit}, c₀ = ${sgnP(phys(base.c0, u), 2)} ${u.unit}, κ = ${sgnP(base.kappa, 2)}`;
+      $('#sw-status').textContent = `Done: ${base.N} trials per method per level, σr = ${fmtNum(phys(base.sr0, u), 2)} ${u.unit}, b from ${sgnP(phys(base.b0, u), 2)} to ${sgnP(phys(base.b1, u), 2)} ${u.unit}, z₀ = ${sgnP(base.z0, 2)} SD, κ = ${sgnP(base.kappa, 2)}`;
       drawSweepCharts(); return;
     }
     const lv = SW.levels[idx]; $('#sw-status').textContent = `Running level ${lv}% (${idx + 1} of ${SW.levels.length})…`;
@@ -961,9 +971,9 @@ function drawSweepCharts() {
     { name: 'Psychomatrix σ̂t', label: 'σ̂t', color: TK.pmx, shape: 'square', pts: R.map(r => ({ x: r.lv, ...p(r.pe.st), truth: phys(r.o.st, u) })) },
     { name: 'Psychomatrix σ̂r', label: 'σ̂r', color: TK.pmx2, shape: 'diamond', pts: R.map(r => ({ x: r.lv, ...p(r.pe.sr), truth: phys(r.o.sr, u) })) }
   ], [
-    { xs, ys: xs.map(l => phys(o0.sr + 24 * l / 100, u)) },
-    { xs, ys: xs.map(l => phys(Math.hypot(o0.sr + 24 * l / 100, o0.sr), u)), dash: [1.5, 3] },
-    { xs, ys: xs.map(() => phys(o0.sr, u)), dash: [6, 4] }
+    { xs, ys: xs.map(l => phys(obsAt(o0, l / 100).st, u)) },
+    { xs, ys: xs.map(l => { const o = obsAt(o0, l / 100); return phys(Math.hypot(o.st, o.sr), u); }), dash: [1.5, 3] },
+    { xs, ys: xs.map(l => phys(obsAt(o0, l / 100).sr, u)), dash: [6, 4] }
   ], u.unit);
 }
 
@@ -972,12 +982,11 @@ $('#s-ctx').addEventListener('change', e => {
   applyPreset();
   obsChanged();
 });
-// example observers per stimulus and context: [b0, b1, c0] in internal units
-const PRESETS = {
-  gabor: { none: [0, -16, 0], neg: [-8, -20, 6], pos: [8, 20, 6] },
-  ebb: { none: [0, 0, 0], neg: [-8, -18, 6], pos: [8, 18, 6] }
+const PRESETS = {   // [b0, b1 (internal units), z0 (SD units)]
+  gabor: { none: [0, -16, 0], neg: [-8, -20, 0.35], pos: [8, 20, 0.35] },
+  ebb: { none: [0, 0, 0], neg: [-12, -24, 0.4], pos: [12, 24, 0.4] }
 };
-function applyPreset() { const [b0, b1, c0] = PRESETS[STIM][$('#s-ctx').value]; $('#s-b0').value = b0; $('#s-b1').value = b1; $('#s-c0').value = c0; }
+function applyPreset() { const [b0, b1, z0] = PRESETS[STIM][$('#s-ctx').value]; $('#s-b0').value = b0; $('#s-b1').value = b1; $('#s-c0').value = z0; }
 // a new observer invalidates the data: preview immediately, then rerun both experiments
 let rerunT;
 function obsChanged() { simStop(); S.std = newStd(); S.pmx = newPmx(); S.trial = 0; S.stdSpec = S.pmxSpec = null; renderSim(); clearTimeout(rerunT); rerunT = setTimeout(simRun, 350); }
@@ -1086,6 +1095,7 @@ function applyStim(key) {
   if (STIM_READY) obsChanged();
   $('#std-q').textContent = u.stdQ; $('#s-bias-help').textContent = u.biasHelp; $('#s-crit-help').textContent = u.critHelp;
   $('#stim-notes').textContent = u.notes;
+  document.querySelectorAll('.lvl-name').forEach(el => { el.textContent = u.lvlName; });
   if (H.phase === 'idle') { H.preview = null; hIdlePrompt(); }
   redrawAll();
 }
