@@ -7,6 +7,8 @@ M Jogan and A. Stocker
 characterization of perceptual bias and discriminability**"
 Journal of Vision, March 13, 2014, vol. 14 no.3
 
+**▶ [Try the interactive demo](https://matjazjogan.github.io/psychomatrix/)**: standard 2AFC vs. the psychomatrix method on tilt-illusion and Ebbinghaus stimuli, with a simulated observer or with yourself as the subject.
+
 `simulateobserver.m` runs a sample experiment with a simulated observer. 
 
 `psychomatrix.m` implements the observer model that allows to fit the decision probability values of the psychomatrix with a two-dimensional probability surface. This particular implementation assumes noise distributions are
