@@ -27,14 +27,11 @@ imagesc(p)
 
 Interactive demo
 ----------------
-`docs/index.html` is a self-contained browser demo (no build step, open it locally or serve `docs/` with GitHub Pages). It measures a contextual illusion on a target that is degraded along a secondary dimension (low contrast or pixel noise confined to the target), while the context and the references stay at full contrast. Two stimuli are available:
+`docs/index.html` is a self-contained browser demo (no build step, open it locally or serve `docs/` with GitHub Pages). A target is degraded along a secondary dimension (low contrast, or pixel noise confined to the target) while the references stay clean. Two stimuli are available:
 
-* **Orientation**: a Gabor target inside a tilted surround grating (tilt illusion), "which is more clockwise?"
-* **Size**: a disc surrounded by large or small inducers (Ebbinghaus illusion), "which disc is larger?"
+* **Orientation** (Gabor patches): either no context, where target and references differ only in orientation and visibility and the fading target is drawn toward (or pushed from) vertical, or a tilted surround grating (tilt illusion). All patches stay between vertical and the 45° oblique so they are biased relative to the same cardinal.
+* **Size**: a disc surrounded by large or small inducers (Ebbinghaus illusion).
 
-Each stimulus is measured with
+Each stimulus is measured with **standard 2AFC** (target vs. one reference, method of constant stimuli, cumulative-Gaussian fit) and with **the psychomatrix method** (target plus two references, "which reference matches the target?", trials placed by expected information gain as in `optimaltrial.m`, model from `psychomatrix.m`).
 
-* **standard 2AFC** (target vs. one reference, method of constant stimuli, cumulative-Gaussian fit), and
-* **the psychomatrix method** (target plus two references, "which reference matches the target?", trials placed by expected information gain as in `optimaltrial.m`, model from `psychomatrix.m`).
-
-In the *Simulated observer* tab you set the true bias, reference noise, target degradation and a non-perceptual response criterion, then watch both methods estimate them. A sweep over degradation levels shows the standard PSE absorbing the response criterion and its single slope mixing target and reference noise, while the psychomatrix recovers bias, σ<sub>t</sub> and σ<sub>r</sub> separately. In the *Try it yourself* tab you can run both procedures on yourself.
+The simulated observer's perceptual bias changes with target visibility, so both methods should track it. In standard 2AFC it also applies a decision bias c = c<sub>0</sub> + κ(σ<sub>t</sub> − σ<sub>r</sub>): c<sub>0</sub> comes from any asymmetry between target and reference (e.g. a salient surround) and is zero only when they differ in the judged dimension alone, and the second term grows as the target becomes more uncertain. The standard PSE therefore lands on b − c, while the psychomatrix, whose two references are equally clear and never include the target as an option, recovers b, σ<sub>t</sub> and σ<sub>r</sub>. A sweep over degradation levels shows the gap growing with noise. The *Try it yourself* tab runs both procedures on you.
