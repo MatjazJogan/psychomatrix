@@ -136,10 +136,10 @@ footer { color: var(--ink-3); font-size: 13px; padding-block: 0 40px; }
 <header class="top wrap">
   <p class="eyebrow">Jogan &amp; Stocker · Journal of Vision 14(3), 2014</p>
   <h1>Psychomatrix Lab</h1>
-  <p class="lede">Measure a contextual illusion while the target gets harder to see. Lower contrast or added noise makes the stimulus harder to see: in the orientation task only the target fades, in the Ebbinghaus task all discs share one low contrast and the inducers around the target are the secondary dimension. Visibility changes the illusion itself, so the perceptual bias moves with degradation in both methods. Standard 2AFC (<q>is the target or the reference larger?</q>) also picks up a decision bias whenever target and reference differ in more than the judged dimension, and it grows as the target gets more uncertain; it cannot be separated from the perceptual bias. The psychomatrix method shows the target with <em>two</em> equally clear references and asks <q>which reference matches the target?</q>, which leaves no room for that decision bias. Run both side by side on a simulated observer whose true parameters you set, or try them yourself.</p>
+  <p class="lede">A visual illusion is a bias in a primary dimension, such as orientation or size, induced by a secondary one, such as contrast or surrounding context. Standard two-alternative forced choice compares the target with a single reference that differs from it in both, and so confounds the perceptual bias with any decision bias the asymmetry invites; that decision bias grows as the target becomes less certain. The psychomatrix method presents the target with two references that differ from each other only in the primary dimension and asks <q>which reference matches the target?</q> Compare the two on a simulated observer whose parameters you set, or on yourself.</p>
   <div class="stimpick" role="group" aria-label="Stimulus">
-    <button id="pick-gabor" aria-pressed="true"><canvas id="icon-gabor" width="112" height="112"></canvas><span><b>Orientation</b>Tilt illusion · “which is more clockwise?”</span></button>
-    <button id="pick-ebb" aria-pressed="false"><canvas id="icon-ebb" width="112" height="112"></canvas><span><b>Size</b>Ebbinghaus illusion · “which disc is larger?”</span></button>
+    <button id="pick-gabor" aria-pressed="true"><canvas id="icon-gabor" width="112" height="112"></canvas><span><b>Orientation</b>Gabor patches · visibility and surround</span></button>
+    <button id="pick-ebb" aria-pressed="false"><canvas id="icon-ebb" width="112" height="112"></canvas><span><b>Size</b>Ebbinghaus discs · inducer context</span></button>
   </div>
   <nav class="tabs" role="tablist">
     <button id="tabbtn-sim" role="tab" aria-selected="true" aria-controls="tab-sim">Simulated observer</button>
@@ -187,7 +187,7 @@ footer { color: var(--ink-3); font-size: 13px; padding-block: 0 40px; }
     <div class="ctl">
       <label for="s-c0"><span>Context decision bias z<sub>0</sub></span> <output id="o-c0"></output></label>
       <input id="s-c0" type="range" min="-1" max="1" step="0.05" value="0">
-      <small>Criterion shift from asymmetry between target and reference (e.g. salient inducers), in units of the observer’s uncertainty. Zero only when they differ in the judged dimension alone. Here c = <span class="num" id="o-crit"></span>.</small>
+      <small>Criterion shift due to asymmetry between target and reference (e.g. salient context), in units of the observer’s uncertainty; zero only when they differ in the primary dimension alone. Here c = <span class="num" id="o-crit"></span>.</small>
     </div>
     <div class="ctl deg-only">
       <label for="s-kappa"><span>Decision bias growth κ</span> <output id="o-kappa"></output></label>
@@ -220,7 +220,7 @@ footer { color: var(--ink-3); font-size: 13px; padding-block: 0 40px; }
     <article class="card method std">
       <header>
         <h2>Standard 2AFC</h2>
-        <p>Target and one reference. <span class="q" id="std-q"></span> References at 13 fixed values, method of constant stimuli.</p>
+        <p>Target against one reference: <span class="q" id="std-q"></span> Thirteen reference values, method of constant stimuli.</p>
       </header>
       <canvas class="stim" id="sim-std-stim" aria-label="Current standard 2AFC trial"></canvas>
       <figure>
@@ -232,13 +232,13 @@ footer { color: var(--ink-3); font-size: 13px; padding-block: 0 40px; }
         <span><i class="dash"></i>True perceptual bias b</span>
         <span><i class="dash" style="background:repeating-linear-gradient(90deg,var(--truth) 0 2px,transparent 2px 5px)!important"></i>b − c, where the 2AFC PSE lands</span>
       </div>
-      <p class="note">The fit returns two numbers: the point of subjective equality (PSE) and one slope. The PSE is the perceptual bias minus the decision bias, and the decision bias grows with the target’s uncertainty. The slope reflects √(σ<sub>t</sub>² + σ<sub>r</sub>²), so the two noise sources cannot be told apart either.</p>
+      <p class="note">The fit yields a point of subjective equality (PSE) and a single slope. The PSE estimates the perceptual bias minus the decision bias; the slope reflects √(σ<sub>t</sub>² + σ<sub>r</sub>²) and cannot apportion noise between target and reference.</p>
     </article>
 
     <article class="card method pmx">
       <header>
         <h2>Psychomatrix 2AFC</h2>
-        <p>Target plus two references. <span class="q">“Which reference matches the target?”</span> Each trial picks the reference pair (r<sub>1</sub>, r<sub>2</sub>) with the highest expected information gain.</p>
+        <p>Target with two references: <span class="q">“Which reference matches the target?”</span> Each trial presents the reference pair of greatest expected information gain.</p>
       </header>
       <canvas class="stim" id="sim-pmx-stim" aria-label="Current psychomatrix trial"></canvas>
       <div class="heat3">
@@ -269,7 +269,7 @@ footer { color: var(--ink-3); font-size: 13px; padding-block: 0 40px; }
   <div class="card" style="display:grid;gap:12px">
     <div>
       <h3>Sweep the secondary dimension</h3>
-      <p class="prose" id="sw-desc">Runs both methods at five degradation levels (0 to 100%) using the settings above, then plots each estimate with ±1 posterior SD. The true perceptual bias changes with visibility (dashed line), and both methods should follow it. The standard PSE follows b − c instead (dotted line), drifting further from the perceptual bias as the target gets noisier, and its single noise estimate cannot say whether the target or the reference got noisier.</p>
+      <p class="prose" id="sw-desc"></p>
     </div>
     <div class="btns"><button class="b" id="sw-run">Run sweep</button><span class="status" id="sw-status">Not run yet</span></div>
     <div class="grid2">
@@ -289,9 +289,9 @@ footer { color: var(--ink-3); font-size: 13px; padding-block: 0 40px; }
     <p>The observer encodes the target as t̂ ~ N(t + b, σ<sub>t</sub>²) and each reference as r̂ ~ N(r, σ<sub>r</sub>²), then picks the reference whose estimate lies closer to t̂. With u = r<sub>1</sub> − r<sub>2</sub> and v = r<sub>1</sub> + r<sub>2</sub> − 2t, the probability of choosing r<sub>2</sub> is</p>
     <div class="eq">P(r₂) = Φ(u/σᵤ)·Φ((v−2b)/σᵥ) + [1−Φ(u/σᵤ)]·[1−Φ((v−2b)/σᵥ)]
 σᵤ = √2·σᵣ          σᵥ = √(2σᵣ² + 4σₜ²)</div>
-    <p>This surface over all (r<sub>1</sub>, r<sub>2</sub>) pairs is the psychomatrix. Its spread across the diagonal depends only on σ<sub>r</sub>, its spread along the diagonal mixes in σ<sub>t</sub>, and its anti-diagonal sits at r<sub>1</sub> + r<sub>2</sub> = 2b. All three parameters are therefore identifiable. Both references share the same contrast and context, so a tendency to favour the clearer stimulus, or to hesitate over the uncertain one, has nothing to act on: the target is never one of the two options.</p>
-    <p>In standard 2AFC the simulated observer answers “target” only when t̂ − r̂ &gt; c, with c = z<sub>0</sub>·√(σ<sub>t</sub>²+σ<sub>r</sub>²) + κ·(σ<sub>t</sub> − σ<sub>r</sub>). The first term is a criterion shift caused by any asymmetry between target and reference, such as a salient surround or inducers; it is fixed in units of the observer’s uncertainty, so its effect grows as the comparison gets noisier, and it is zero only when the two differ in the judged dimension alone. The second term grows with any extra uncertainty about the target relative to the references. The fitted PSE is then b − c, and nothing in the data tells the two apart.</p>
-    <p>Fitting uses a grid posterior over (b, σ<sub>r</sub>, σ<sub>t</sub>) with a 2% lapse rate. Trial selection minimises the expected posterior entropy, as in <code>optimaltrial.m</code>, and draws at random among the four best pairs to avoid repeating the same triplet. This page is a JavaScript port of <code>psychomatrix.m</code>, <code>optimaltrial.m</code> and <code>simulateobserver.m</code>.</p>
+    <p>This surface over all reference pairs is the psychomatrix. Its width across the diagonal depends on σ<sub>r</sub> alone, its width along the diagonal also on σ<sub>t</sub>, and its anti-diagonal lies at r<sub>1</sub> + r<sub>2</sub> = 2b, so all three parameters are identifiable. The two references are identical except in the primary dimension, and the target is never a response option, so no decision bias can favour either alternative.</p>
+    <p>In standard 2AFC the simulated observer reports the target as larger (or more clockwise) when t̂ − r̂ &gt; c, with c = z<sub>0</sub>·√(σ<sub>t</sub>²+σ<sub>r</sub>²) + κ·(σ<sub>t</sub> − σ<sub>r</sub>). The first term is a criterion shift arising from any asymmetry between target and reference, such as a salient surround or inducers; expressed in units of uncertainty, it grows with noise and vanishes only when the two differ in the primary dimension alone. The second term grows with any additional uncertainty about the target. The fitted PSE is b − c, and the data cannot separate the two.</p>
+    <p>Parameters are estimated on a grid posterior over (b, σ<sub>r</sub>, σ<sub>t</sub>) with a 2% lapse rate. Trials minimise the expected posterior entropy, as in <code>optimaltrial.m</code>, drawing at random among the four best pairs to avoid repeating a triplet. The page is a JavaScript port of <code>psychomatrix.m</code>, <code>optimaltrial.m</code> and <code>simulateobserver.m</code>.</p>
     <p id="stim-notes"></p>
   </div>
 </section>
@@ -377,7 +377,7 @@ footer { color: var(--ink-3); font-size: 13px; padding-block: 0 40px; }
 
   <div class="card">
     <h3>Your runs</h3>
-    <p class="prose" style="margin-bottom:8px">Run both methods, then repeat with a different degradation level or inducer condition. Both estimates can move as the target gets harder to see, because visibility changes the illusion. Where they part ways, and increasingly so at high degradation, the difference is the decision bias that standard 2AFC mixes into its PSE.</p>
+    <p class="prose" style="margin-bottom:8px">Run both methods, then repeat at another visibility level or inducer condition. Both estimates may change with the secondary dimension, since it alters the illusion itself; a growing divergence between them is the decision bias absorbed by the standard PSE.</p>
     <div class="tablewrap"><table id="h-log"></table></div>
   </div>
 </section>
@@ -399,31 +399,31 @@ const LAPSE = 0.02;
 const STIMS = {
   gabor: {
     name: 'Orientation', unit: '°', scale: 0.15, ctxIsSecondary: false, lvlName: 'Target degradation', ctxName: 'Context',
-    b0Name: 'Perceptual bias, clear target', b1Name: 'Perceptual bias, fully degraded', b1Help: 'The illusion changes with visibility. At the current level',
-    srHelp: 'Encoding noise for the clean, full-contrast references.',
-    swDesc: 'Runs both methods at five degradation levels (0 to 100%) using the settings above, then plots each estimate with ±1 posterior SD. The true perceptual bias changes with visibility (dashed line), and both methods should follow it. The standard PSE follows b − c instead (dotted line), drifting further from the perceptual bias as the target gets noisier, and its single noise estimate cannot say whether the target or the reference got noisier.',
-    ctx: { none: 'No context: target drawn toward vertical as it fades', neg: 'Surround tilted +15° (target looks counter-clockwise)', pos: 'Surround tilted −15° (target looks clockwise)' }, defCtx: 'none',
+    b0Name: 'Perceptual bias, target fully visible', b1Name: 'Perceptual bias, target least visible', b1Help: 'Varies linearly with visibility; at the current level',
+    srHelp: 'Encoding noise of the full-contrast references.',
+    swDesc: 'Both methods are run at five levels of target visibility with the settings above; estimates are shown ±1 posterior s.d. The perceptual bias b varies with visibility (dashed). The standard PSE follows b − c (dotted) and departs from b as the target becomes less certain, and its single noise estimate cannot be attributed to target or reference.',
+    ctx: { none: 'No context (bias towards vertical as the target fades)', neg: 'Surround tilted +15° (target looks counter-clockwise)', pos: 'Surround tilted −15° (target looks clockwise)' }, defCtx: 'none',
     ctxShort: { neg: 'surround +15°', pos: 'surround −15°', none: 'no context' },
     stdQ: '“Which patch is tilted more clockwise?”', stdPrompt: 'Which patch is tilted more clockwise?',
     pmxPrompt: 'Which bottom patch has the same orientation as the top one?',
     pY: 'P(target more clockwise)', axis: 'reference − target (°)',
-    biasHelp: 'Apparent rotation of the clearly visible target, in degrees (positive = clockwise).',
-    critHelp: 'In standard 2AFC the observer hesitates to call the faint target “more clockwise”, more so the harder it is to see.',
-    notes: 'Orientation stimulus: Gabor patches (period 14 px, σ 15 px). The target sits 18–27° clockwise of vertical and the references within ±9° of it, so every patch lies between vertical and the 45° oblique and is biased relative to the same cardinal. Without context, target and references differ only in orientation and visibility: at full visibility the setup is symmetric and no decision bias is expected, and as the target fades its perceived orientation is drawn further toward vertical (or pushed away, depending on the observer). With a surround, an annular grating at 90% contrast tilted ±15° repels the target (tilt illusion) and also makes it more salient than the plain references, so standard 2AFC carries a decision bias even when the target is clearly visible.'
+    biasHelp: 'Perceived rotation of the fully visible target (positive, clockwise).',
+    critHelp: 'Growth of the decision bias with the extra uncertainty about the target (standard 2AFC only).',
+    notes: 'Orientation: Gabor patches (period 14 px, σ 15 px). The target lies 18–27° clockwise of vertical and the references within ±9° of it, so every patch falls between vertical and the 45° oblique and is biased with respect to the same cardinal axis. Without context, target and references differ only in orientation and visibility: at full visibility the configuration is symmetric and no decision bias is expected, and as the target fades its perceived orientation is drawn towards (or repelled from) vertical. A surround grating (90% contrast, tilted ±15°) repels the target’s orientation and makes it more salient than the references, so standard 2AFC carries a decision bias even at full visibility.'
   },
   ebb: {
     name: 'Size', unit: 'px', scale: 0.25, ctxIsSecondary: true, ctxName: 'Inducers (the secondary dimension)',
-    b0Name: 'Perceptual bias, small inducers', b1Name: 'Perceptual bias, large inducers', b1Help: 'Without inducers b = 0. In the current condition',
-    srHelp: 'Encoding noise for the faint discs, the same for target and references.',
-    swDesc: 'Runs both methods once per inducer condition (small, none, large) using the settings above, then plots each estimate with ±1 posterior SD. The inducers are the secondary dimension: they set the perceptual bias (dashed line), and both methods should follow it. With inducers present the target and reference are no longer symmetric, so the standard PSE lands on b − c (dotted line). Without inducers both biases vanish.',
+    b0Name: 'Perceptual bias, small inducers', b1Name: 'Perceptual bias, large inducers', b1Help: 'Zero without inducers; in the current condition',
+    srHelp: 'Encoding noise of the faint discs, equal for target and references.',
+    swDesc: 'Both methods are run once per inducer condition with the settings above; estimates are shown ±1 posterior s.d. The inducers set the perceptual bias b (dashed). Wherever inducers are present, target and reference are asymmetric and the standard PSE follows b − c (dotted); without inducers the two coincide.',
     ctx: { neg: 'Large inducers (target looks smaller)', pos: 'Small inducers (target looks larger)', none: 'No inducers (control)' }, defCtx: 'neg',
     ctxShort: { neg: 'large inducers', pos: 'small inducers', none: 'no inducers' },
     stdQ: '“Which disc is larger?”', stdPrompt: 'Which disc is larger?',
     pmxPrompt: 'Which bottom disc has the same size as the top one?',
     pY: 'P(target larger)', axis: 'reference − target diameter (px)',
-    biasHelp: 'Apparent change of the target diameter, in px (positive = looks larger).',
-    critHelp: 'In standard 2AFC the observer hesitates to call the faint target “larger”, more so the harder it is to see.',
-    notes: 'Size stimulus: a 56 px target disc and two reference discs, all at the same fixed low contrast (5% darker than the background). The secondary dimension is the context around the target: six large (72 px, about 22 px away) or ten small (14 px) full-contrast inducers (Ebbinghaus illusion), or none. Large inducers are kept well away from the target because inducers that nearly touch it can weaken or reverse the illusion. With inducers, target and reference are asymmetric and standard 2AFC carries a decision bias; without them the two differ in size alone.'
+    biasHelp: 'Perceived change in target diameter (positive, larger).',
+    critHelp: 'Growth of the decision bias with the extra uncertainty about the target (standard 2AFC only).',
+    notes: 'Size: a 56 px target disc and two reference discs, all at the same low contrast (5% below background). The secondary dimension is the context: six large inducers (72 px, about 22 px from the target), ten small ones (14 px), or none. Large inducers are kept clear of the target, as near contact can weaken or reverse the illusion. With inducers present, target and reference are asymmetric and standard 2AFC carries a decision bias; without them they differ in size alone.'
   }
 };
 let STIM = 'gabor', STIM_READY = false;
@@ -932,7 +932,7 @@ function renderSimTable(o, u) {
     <tr><td>Combined √(σ<sub>t</sub>² + σ<sub>r</sub>²)</td><td class="n">${A(sc)}</td>${has ? `<td class="n">${fU(se.sc, u)}</td><td class="n">${fU(pe.sc, u)}</td>` : d + d}</tr>
     <tr><td>Decision bias c</td><td class="n">${P(o.c)}</td><td class="na">mixed into the PSE (PSE ≈ b − c = ${P(o.b - o.c)})</td><td class="na">does not enter the decision</td></tr>`;
   $('#sim-verdict').innerHTML = has
-    ? `After ${S.trial} trials each, the standard PSE misses the perceptual bias by <b>${A(Math.abs(se.mu.m - o.b))} ${un}</b>, because a decision bias of ${P(o.c)} ${un} rides on it ${u.ctxIsSecondary ? 'in this condition' : 'at this level'}; the psychomatrix estimate misses by <b>${A(Math.abs(pe.b.m - o.b))} ${un}</b>. ${u.ctxIsSecondary ? `Only the psychomatrix also estimates target and reference noise separately (σ̂<sub>t</sub> = ${A(pe.st.m)}, σ̂<sub>r</sub> = ${A(pe.sr.m)} ${un}), to compare with the true value of ${A(o.sr)} ${un} for both.` : `Only the psychomatrix also says how much of the noise belongs to the degraded target (σ̂<sub>t</sub> = ${A(pe.st.m)} ${un}) versus the clean reference (σ̂<sub>r</sub> = ${A(pe.sr.m)} ${un}).`}`
+    ? `After ${S.trial} trials each, the standard PSE departs from the perceptual bias by <b>${A(Math.abs(se.mu.m - o.b))} ${un}</b>, reflecting a decision bias of ${P(o.c)} ${un} ${u.ctxIsSecondary ? 'in this condition' : 'at this level'}; the psychomatrix estimate departs by <b>${A(Math.abs(pe.b.m - o.b))} ${un}</b>. ${u.ctxIsSecondary ? `Only the psychomatrix separates target and reference noise (σ̂<sub>t</sub> = ${A(pe.st.m)}, σ̂<sub>r</sub> = ${A(pe.sr.m)} ${un}; true value ${A(o.sr)} ${un} for both).` : `Only the psychomatrix separates target and reference noise (σ̂<sub>t</sub> = ${A(pe.st.m)}, σ̂<sub>r</sub> = ${A(pe.sr.m)} ${un}).`}`
     : 'Press Run to start both experiments on the same simulated observer.';
 }
 

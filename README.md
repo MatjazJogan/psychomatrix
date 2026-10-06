@@ -7,7 +7,7 @@ M Jogan and A. Stocker
 characterization of perceptual bias and discriminability**"
 Journal of Vision, March 13, 2014, vol. 14 no.3
 
-**▶ [Try the interactive demo](https://matjazjogan.github.io/psychomatrix/)**: standard 2AFC vs. the psychomatrix method on tilt-illusion and Ebbinghaus stimuli, with a simulated observer or with yourself as the subject.
+**▶ [Interactive demo](https://matjazjogan.github.io/psychomatrix/)**: standard 2AFC and the psychomatrix method compared on orientation and Ebbinghaus stimuli, with a simulated observer or with you as the observer.
 
 `simulateobserver.m` runs a sample experiment with a simulated observer. 
 
@@ -29,11 +29,13 @@ imagesc(p)
 
 Interactive demo
 ----------------
-`docs/index.html` is a self-contained browser demo (no build step, open it locally or serve `docs/` with GitHub Pages). Visibility is reduced along a secondary dimension (low contrast or pixel noise). Two stimuli are available:
+[`docs/index.html`](docs/index.html) is a self-contained browser demo (no build step; open it locally or serve `docs/` with GitHub Pages).
 
-* **Orientation** (Gabor patches): either no context, where target and references differ only in orientation and visibility and the fading target is drawn toward (or pushed from) vertical, or a tilted surround grating (tilt illusion). All patches stay between vertical and the 45° oblique so they are biased relative to the same cardinal.
-* **Size** (Ebbinghaus illusion): the target and reference discs share one fixed low contrast, and the inducers around the target (small, none, large) are the secondary dimension. Without inducers the setup is symmetric and neither bias is expected.
+A target is compared with references along a primary dimension (orientation or size) while differing from them along a secondary one. The secondary dimension induces a perceptual bias in the primary, and this bias is what the experiment measures.
 
-Each stimulus is measured with **standard 2AFC** (target vs. one reference, method of constant stimuli, cumulative-Gaussian fit) and with **the psychomatrix method** (target plus two references, "which reference matches the target?", trials placed by expected information gain as in `optimaltrial.m`, model from `psychomatrix.m`).
+* **Orientation.** Gabor patches. The secondary dimension is the visibility of the target (contrast or additive noise), optionally with a tilted surround grating (tilt illusion). All orientations lie between vertical and the 45° oblique, so target and references are biased towards the same cardinal axis.
+* **Size.** Discs of equal low contrast. The secondary dimension is the Ebbinghaus context around the target: small, absent or large inducers.
 
-The simulated observer's perceptual bias changes with target visibility, so both methods should track it. In standard 2AFC it also applies a decision bias c = z<sub>0</sub>·√(σ<sub>t</sub>²+σ<sub>r</sub>²) + κ(σ<sub>t</sub> − σ<sub>r</sub>): z<sub>0</sub> is a criterion shift from any asymmetry between target and reference (e.g. a salient surround or inducers), fixed in units of uncertainty so its effect grows with noise, and zero only when they differ in the judged dimension alone; the second term grows with extra uncertainty about the target. The standard PSE therefore lands on b − c, while the psychomatrix, whose two references are equally clear and never include the target as an option, recovers b, σ<sub>t</sub> and σ<sub>r</sub>. A sweep over degradation levels shows the gap growing with noise. The *Try it yourself* tab runs both procedures on you.
+Each condition is measured by standard 2AFC (target against one reference; method of constant stimuli; cumulative Gaussian fit) and by the psychomatrix method (target with two references, "which reference matches the target?"; trials placed by expected information gain as in `optimaltrial.m`; model from `psychomatrix.m`).
+
+In standard 2AFC, any asymmetry between target and reference beyond the primary dimension invites a decision bias that grows with the observer's uncertainty and cannot be distinguished from the perceptual bias; the PSE estimates their difference. The two references of the psychomatrix differ only in the primary dimension, and the target is never a response option, so the decision bias has nothing to act on and the method recovers the perceptual bias together with separate target and reference noise. The simulated observer makes this explicit, with decision bias c = z<sub>0</sub>√(σ<sub>t</sub>²+σ<sub>r</sub>²) + κ(σ<sub>t</sub> − σ<sub>r</sub>), and a sweep along the secondary dimension shows the two estimates diverging. A second mode runs both procedures on the viewer.
