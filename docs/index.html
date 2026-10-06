@@ -1,0 +1,1148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Psychomatrix Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a lab bench. Stimulus choice and controls on top, the two methods side by side (stacked on phones), shared results underneath. */
+:root {
+  --bg: #f3f5f8;
+  --panel: #ffffff;
+  --ink: #0f1722;
+  --ink-2: #485462;
+  --ink-3: #78838f;
+  --rule: #dce2e9;
+  --std: #eb6834;       /* standard 2AFC  (categorical slot 2) */
+  --pmx: #2a78d6;       /* psychomatrix   (categorical slot 1) */
+  --pmx-2: #1baf7a;     /* psychomatrix sigma_r (slot 3) */
+  --truth: #78838f;
+  --div-lo: #2a78d6;
+  --div-mid: #f0efec;
+  --div-hi: #e34948;
+  --seq-lo: #eef1f5;
+  --seq-hi: #1b2633;
+  --font-ui: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141a; --panel: #161d25; --ink: #edf1f5; --ink-2: #b2bcc8; --ink-3: #7d8895;
+    --rule: #28313b; --std: #d95926; --pmx: #3987e5; --pmx-2: #199e70; --truth: #8b96a3;
+    --div-lo: #3987e5; --div-mid: #383835; --div-hi: #e66767; --seq-lo: #1d252e; --seq-hi: #e6ebf0;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141a; --panel: #161d25; --ink: #edf1f5; --ink-2: #b2bcc8; --ink-3: #7d8895;
+  --rule: #28313b; --std: #d95926; --pmx: #3987e5; --pmx-2: #199e70; --truth: #8b96a3;
+  --div-lo: #3987e5; --div-mid: #383835; --div-hi: #e66767; --seq-lo: #1d252e; --seq-hi: #e6ebf0;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--font-ui); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; }
+header.top { padding-block: 36px 8px; display: grid; gap: 14px; }
+.eyebrow { font: 600 12px/1.4 var(--font-data); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.05; margin: 0; letter-spacing: -.01em; text-wrap: balance; }
+h2 { font-size: 19px; margin: 0; }
+h3 { font-size: 16px; margin: 0 0 6px; }
+p { margin: 0; }
+.lede { max-width: 70ch; color: var(--ink-2); font-size: 16px; }
+.lede q { font-style: italic; }
+.stimpick { display: flex; flex-wrap: wrap; gap: 10px; }
+.stimpick button { display: grid; grid-template-columns: 56px 1fr; gap: 10px; align-items: center; text-align: left; font: 14px/1.3 var(--font-ui); color: var(--ink-2); background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius); padding: 8px 14px 8px 8px; cursor: pointer; min-width: 0; }
+.stimpick button b { display: block; color: var(--ink); font-size: 15px; }
+.stimpick button[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.stimpick button:disabled { opacity: .5; cursor: default; }
+.stimpick canvas { width: 56px; height: 56px; border-radius: 6px; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--rule); flex-wrap: wrap; }
+.tabs button { font: 700 14px var(--font-ui); background: none; border: 0; border-bottom: 3px solid transparent; color: var(--ink-3); padding: 10px 14px; cursor: pointer; margin-bottom: -1px; }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+main { padding-block: 20px 60px; display: grid; gap: 18px; }
+section.tab { display: grid; gap: 18px; }
+.card { background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius); padding: 18px; min-width: 0; }
+.controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px 22px; align-items: end; }
+.ctl { display: grid; gap: 4px; min-width: 0; }
+.ctl label, .ctl .lbl { font-size: 13px; color: var(--ink-2); display: flex; justify-content: space-between; gap: 8px; }
+.ctl output, .num { font: 600 13px var(--font-data); color: var(--ink); font-variant-numeric: tabular-nums; }
+.ctl small { color: var(--ink-3); font-size: 12px; line-height: 1.35; }
+input[type=range] { width: 100%; accent-color: var(--ink); }
+select { font: 14px var(--font-ui); padding: 6px 8px; border-radius: 6px; border: 1px solid var(--rule); background: var(--panel); color: var(--ink); width: 100%; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+button.b { font: 700 14px var(--font-ui); padding: 8px 16px; border-radius: 7px; border: 1px solid var(--ink); background: var(--ink); color: var(--panel); cursor: pointer; }
+button.b.ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
+button.b:disabled { opacity: .45; cursor: default; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--pmx); outline-offset: 2px; }
+.status { font: 13px var(--font-data); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 860px) { .compare { grid-template-columns: 1fr; } }
+.method { display: grid; gap: 14px; align-content: start; border-top: 4px solid var(--c); }
+.method.std { --c: var(--std); }
+.method.pmx { --c: var(--pmx); }
+.method header p { color: var(--ink-2); font-size: 14px; }
+.method header .q { font-style: italic; }
+canvas { display: block; width: 100%; }
+canvas.stim { aspect-ratio: 9 / 5; border-radius: 6px; }
+figure { margin: 0; display: grid; gap: 4px; min-width: 0; }
+figcaption { font-size: 13px; color: var(--ink-2); font-weight: 700; }
+.psy { aspect-ratio: 4 / 3; }
+.heat3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.heat3 canvas { aspect-ratio: 1 / 1; }
+.marg3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.marg3 canvas { aspect-ratio: 4 / 3; }
+@media (max-width: 520px) { .heat3, .marg3 { grid-template-columns: 1fr 1fr; } }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--ink-2); align-items: center; }
+.legend i { display: inline-block; width: 18px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.legend i.dash { background: repeating-linear-gradient(90deg, var(--truth) 0 4px, transparent 4px 7px) !important; }
+.divbar { display: grid; grid-template-columns: auto minmax(80px, 220px) auto; gap: 8px; align-items: center; font-size: 12px; color: var(--ink-2); }
+.divbar span.g { height: 10px; border-radius: 3px; background: linear-gradient(90deg, var(--div-lo), var(--div-mid), var(--div-hi)); }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
+td.n { font: 14px var(--font-data); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td .sd { color: var(--ink-3); font-size: 12px; }
+td.na { color: var(--ink-3); font-style: italic; font-size: 13px; }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.verdict { margin-top: 12px; font-size: 14px; color: var(--ink-2); max-width: 75ch; }
+.verdict b { color: var(--ink); }
+.note { font-size: 14px; color: var(--ink-2); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+.grid2 canvas { aspect-ratio: 3 / 2; }
+.prose { max-width: 75ch; color: var(--ink-2); display: grid; gap: 10px; }
+.prose code { font: 13px var(--font-data); color: var(--ink); }
+.eq { font: 13px/1.7 var(--font-data); color: var(--ink); background: var(--bg); border-radius: 6px; padding: 10px 12px; overflow-x: auto; white-space: pre; }
+.stage { display: grid; gap: 12px; }
+.stage canvas { aspect-ratio: 9 / 5; border-radius: 8px; max-width: 900px; margin: 0 auto; touch-action: manipulation; }
+.prompt { text-align: center; font-size: 17px; font-weight: 700; min-height: 1.6em; }
+.resp { display: flex; gap: 12px; justify-content: center; }
+.resp button { min-width: 150px; font-size: 16px; padding: 12px 18px; }
+kbd { font: 12px var(--font-data); border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 4px; padding: 1px 6px; color: var(--ink); background: var(--bg); }
+.empty { color: var(--ink-3); font-size: 14px; padding: 24px 0; text-align: center; }
+#tip { position: fixed; z-index: 10; pointer-events: none; background: var(--ink); color: var(--panel); font: 12px/1.45 var(--font-data); padding: 6px 9px; border-radius: 6px; max-width: 260px; opacity: 0; transition: opacity .08s; }
+@media (prefers-reduced-motion: reduce) { #tip { transition: none; } }
+footer { color: var(--ink-3); font-size: 13px; padding-block: 0 40px; }
+</style>
+</head>
+<body>
+
+<header class="top wrap">
+  <p class="eyebrow">Jogan &amp; Stocker · Journal of Vision 14(3), 2014</p>
+  <h1>Psychomatrix Lab</h1>
+  <p class="lede">Measure a contextual illusion while the target gets harder to see. Lower contrast or added noise makes the stimulus harder to see: in the orientation task only the target fades, in the Ebbinghaus task all discs share one low contrast and the inducers around the target are the secondary dimension. Visibility changes the illusion itself, so the perceptual bias moves with degradation in both methods. Standard 2AFC (<q>is the target or the reference larger?</q>) also picks up a decision bias whenever target and reference differ in more than the judged dimension, and it grows as the target gets more uncertain; it cannot be separated from the perceptual bias. The psychomatrix method shows the target with <em>two</em> equally clear references and asks <q>which reference matches the target?</q>, which leaves no room for that decision bias. Run both side by side on a simulated observer whose true parameters you set, or try them yourself.</p>
+  <div class="stimpick" role="group" aria-label="Stimulus">
+    <button id="pick-gabor" aria-pressed="true"><canvas id="icon-gabor" width="112" height="112"></canvas><span><b>Orientation</b>Tilt illusion · “which is more clockwise?”</span></button>
+    <button id="pick-ebb" aria-pressed="false"><canvas id="icon-ebb" width="112" height="112"></canvas><span><b>Size</b>Ebbinghaus illusion · “which disc is larger?”</span></button>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button id="tabbtn-sim" role="tab" aria-selected="true" aria-controls="tab-sim">Simulated observer</button>
+    <button id="tabbtn-you" role="tab" aria-selected="false" aria-controls="tab-you">Try it yourself</button>
+  </nav>
+</header>
+
+<main class="wrap">
+
+<!-- ======================= SIMULATED OBSERVER ======================= -->
+<section class="tab" id="tab-sim" role="tabpanel" aria-labelledby="tabbtn-sim">
+
+  <div class="card controls">
+    <div class="ctl">
+      <span class="lbl ctx-name">Context</span>
+      <select id="s-ctx"><option value="none"></option><option value="neg"></option><option value="pos"></option></select>
+    </div>
+    <div class="ctl">
+      <label for="s-b0"><span id="b0-name">Perceptual bias, clear target</span> <output id="o-b0"></output></label>
+      <input id="s-b0" type="range" min="-30" max="30" step="1" value="-8">
+      <small id="s-bias-help"></small>
+    </div>
+    <div class="ctl">
+      <label for="s-b1"><span id="b1-name">Perceptual bias, fully degraded</span> <output id="o-b1"></output></label>
+      <input id="s-b1" type="range" min="-30" max="30" step="1" value="-20">
+      <small><span id="b1-help">The illusion changes with visibility. At the current level</span> b = <span class="num" id="o-bias"></span>.</small>
+    </div>
+    <div class="ctl">
+      <label for="s-sr"><span>Reference noise σ<sub>r</sub></span> <output id="o-sr"></output></label>
+      <input id="s-sr" type="range" min="2" max="12" step="0.5" value="5">
+      <small id="sr-help">Encoding noise for the clean, full-contrast references.</small>
+    </div>
+    <div class="ctl deg-only">
+      <span class="lbl">Secondary dimension</span>
+      <select id="s-dim">
+        <option value="contrast">Low contrast</option>
+        <option value="noise">Pixel noise</option>
+      </select>
+    </div>
+    <div class="ctl deg-only">
+      <label for="s-level"><span class="lvl-name">Target degradation</span> <output id="o-level"></output></label>
+      <input id="s-level" type="range" min="0" max="100" step="5" value="50">
+      <small id="s-level-help"></small>
+    </div>
+    <div class="ctl">
+      <label for="s-c0"><span>Context decision bias z<sub>0</sub></span> <output id="o-c0"></output></label>
+      <input id="s-c0" type="range" min="-1" max="1" step="0.05" value="0">
+      <small>Criterion shift from asymmetry between target and reference (e.g. salient inducers), in units of the observer’s uncertainty. Zero only when they differ in the judged dimension alone. Here c = <span class="num" id="o-crit"></span>.</small>
+    </div>
+    <div class="ctl deg-only">
+      <label for="s-kappa"><span>Decision bias growth κ</span> <output id="o-kappa"></output></label>
+      <input id="s-kappa" type="range" min="-1" max="1" step="0.05" value="0.8">
+      <small><span id="s-crit-help"></span> c = z<sub>0</sub>·√(σ<sub>t</sub>²+σ<sub>r</sub>²) + κ·(σ<sub>t</sub> − σ<sub>r</sub>).</small>
+    </div>
+    <div class="ctl">
+      <label for="s-n"><span>Trials per method</span> <output id="o-n"></output></label>
+      <input id="s-n" type="range" min="50" max="400" step="25" value="200">
+    </div>
+    <div class="ctl">
+      <span class="lbl">Speed</span>
+      <select id="s-speed">
+        <option value="watch">Watch (8 trials/s)</option>
+        <option value="fast" selected>Fast (60 trials/s)</option>
+        <option value="instant">Instant</option>
+      </select>
+    </div>
+    <div class="ctl">
+      <div class="btns">
+        <button class="b" id="s-run">Run</button>
+        <button class="b ghost" id="s-step">Step</button>
+        <button class="b ghost" id="s-reset">Reset</button>
+      </div>
+      <span class="status" id="s-status">Trial 0 / 200</span>
+    </div>
+  </div>
+
+  <div class="compare">
+    <article class="card method std">
+      <header>
+        <h2>Standard 2AFC</h2>
+        <p>Target and one reference. <span class="q" id="std-q"></span> References at 13 fixed values, method of constant stimuli.</p>
+      </header>
+      <canvas class="stim" id="sim-std-stim" aria-label="Current standard 2AFC trial"></canvas>
+      <figure>
+        <figcaption>Psychometric function</figcaption>
+        <canvas class="psy" id="sim-std-psy" aria-label="Psychometric function"></canvas>
+      </figure>
+      <div class="legend">
+        <span><i style="background:var(--std)"></i>Data and fitted cumulative Gaussian</span>
+        <span><i class="dash"></i>True perceptual bias b</span>
+        <span><i class="dash" style="background:repeating-linear-gradient(90deg,var(--truth) 0 2px,transparent 2px 5px)!important"></i>b − c, where the 2AFC PSE lands</span>
+      </div>
+      <p class="note">The fit returns two numbers: the point of subjective equality (PSE) and one slope. The PSE is the perceptual bias minus the decision bias, and the decision bias grows with the target’s uncertainty. The slope reflects √(σ<sub>t</sub>² + σ<sub>r</sub>²), so the two noise sources cannot be told apart either.</p>
+    </article>
+
+    <article class="card method pmx">
+      <header>
+        <h2>Psychomatrix 2AFC</h2>
+        <p>Target plus two references. <span class="q">“Which reference matches the target?”</span> Each trial picks the reference pair (r<sub>1</sub>, r<sub>2</sub>) with the highest expected information gain.</p>
+      </header>
+      <canvas class="stim" id="sim-pmx-stim" aria-label="Current psychomatrix trial"></canvas>
+      <div class="heat3">
+        <figure><figcaption>Observed</figcaption><canvas id="sim-pmx-obs" aria-label="Observed psychomatrix"></canvas></figure>
+        <figure><figcaption>Model fit</figcaption><canvas id="sim-pmx-fit" aria-label="Fitted psychomatrix"></canvas></figure>
+        <figure><figcaption>Next-trial info</figcaption><canvas id="sim-pmx-info" aria-label="Expected information gain per reference pair"></canvas></figure>
+      </div>
+      <div class="divbar"><span>chose r<sub>1</sub></span><span class="g"></span><span>chose r<sub>2</sub></span></div>
+      <div class="marg3">
+        <figure><figcaption>Bias b</figcaption><canvas id="sim-m-b"></canvas></figure>
+        <figure><figcaption>Target σ<sub>t</sub></figcaption><canvas id="sim-m-st"></canvas></figure>
+        <figure><figcaption>Reference σ<sub>r</sub></figcaption><canvas id="sim-m-sr"></canvas></figure>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--pmx)"></i>Posterior</span>
+        <span><i class="dash"></i>True value</span>
+        <span>Dashed diagonal in the fit marks r<sub>1</sub> + r<sub>2</sub> = 2b̂</span>
+      </div>
+    </article>
+  </div>
+
+  <div class="card">
+    <h3>Estimates against the truth</h3>
+    <div class="tablewrap"><table id="sim-table"></table></div>
+    <p class="verdict" id="sim-verdict"></p>
+  </div>
+
+  <div class="card" style="display:grid;gap:12px">
+    <div>
+      <h3>Sweep the secondary dimension</h3>
+      <p class="prose" id="sw-desc">Runs both methods at five degradation levels (0 to 100%) using the settings above, then plots each estimate with ±1 posterior SD. The true perceptual bias changes with visibility (dashed line), and both methods should follow it. The standard PSE follows b − c instead (dotted line), drifting further from the perceptual bias as the target gets noisier, and its single noise estimate cannot say whether the target or the reference got noisier.</p>
+    </div>
+    <div class="btns"><button class="b" id="sw-run">Run sweep</button><span class="status" id="sw-status">Not run yet</span></div>
+    <div class="grid2">
+      <figure><figcaption id="sw-bias-cap">Bias estimate</figcaption><canvas id="sw-bias" aria-label="Bias estimates by degradation level"></canvas></figure>
+      <figure><figcaption id="sw-noise-cap">Noise estimates</figcaption><canvas id="sw-noise" aria-label="Noise estimates by degradation level"></canvas></figure>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--std)"></i>Standard: PSE / combined σ</span>
+      <span><i style="background:var(--pmx)"></i>Psychomatrix: b̂ / σ̂<sub>t</sub></span>
+      <span><i style="background:var(--pmx-2)"></i>Psychomatrix: σ̂<sub>r</sub></span>
+      <span><i class="dash"></i>Truth: dashed b, σ<sub>t</sub>, σ<sub>r</sub>; dotted b − c and √(σ<sub>t</sub>²+σ<sub>r</sub>²)</span>
+    </div>
+  </div>
+
+  <div class="card prose">
+    <h3>How the model works</h3>
+    <p>The observer encodes the target as t̂ ~ N(t + b, σ<sub>t</sub>²) and each reference as r̂ ~ N(r, σ<sub>r</sub>²), then picks the reference whose estimate lies closer to t̂. With u = r<sub>1</sub> − r<sub>2</sub> and v = r<sub>1</sub> + r<sub>2</sub> − 2t, the probability of choosing r<sub>2</sub> is</p>
+    <div class="eq">P(r₂) = Φ(u/σᵤ)·Φ((v−2b)/σᵥ) + [1−Φ(u/σᵤ)]·[1−Φ((v−2b)/σᵥ)]
+σᵤ = √2·σᵣ          σᵥ = √(2σᵣ² + 4σₜ²)</div>
+    <p>This surface over all (r<sub>1</sub>, r<sub>2</sub>) pairs is the psychomatrix. Its spread across the diagonal depends only on σ<sub>r</sub>, its spread along the diagonal mixes in σ<sub>t</sub>, and its anti-diagonal sits at r<sub>1</sub> + r<sub>2</sub> = 2b. All three parameters are therefore identifiable. Both references share the same contrast and context, so a tendency to favour the clearer stimulus, or to hesitate over the uncertain one, has nothing to act on: the target is never one of the two options.</p>
+    <p>In standard 2AFC the simulated observer answers “target” only when t̂ − r̂ &gt; c, with c = z<sub>0</sub>·√(σ<sub>t</sub>²+σ<sub>r</sub>²) + κ·(σ<sub>t</sub> − σ<sub>r</sub>). The first term is a criterion shift caused by any asymmetry between target and reference, such as a salient surround or inducers; it is fixed in units of the observer’s uncertainty, so its effect grows as the comparison gets noisier, and it is zero only when the two differ in the judged dimension alone. The second term grows with any extra uncertainty about the target relative to the references. The fitted PSE is then b − c, and nothing in the data tells the two apart.</p>
+    <p>Fitting uses a grid posterior over (b, σ<sub>r</sub>, σ<sub>t</sub>) with a 2% lapse rate. Trial selection minimises the expected posterior entropy, as in <code>optimaltrial.m</code>, and draws at random among the four best pairs to avoid repeating the same triplet. This page is a JavaScript port of <code>psychomatrix.m</code>, <code>optimaltrial.m</code> and <code>simulateobserver.m</code>.</p>
+    <p id="stim-notes"></p>
+  </div>
+</section>
+
+<!-- ======================= TRY IT YOURSELF ======================= -->
+<section class="tab" id="tab-you" role="tabpanel" aria-labelledby="tabbtn-you" hidden>
+  <div class="card controls">
+    <div class="ctl">
+      <span class="lbl">Method</span>
+      <select id="h-method">
+        <option value="pmx">Psychomatrix (target + two references)</option>
+        <option value="std">Standard 2AFC (target vs reference)</option>
+      </select>
+    </div>
+    <div class="ctl">
+      <span class="lbl ctx-name">Context</span>
+      <select id="h-ctx"><option value="none"></option><option value="neg"></option><option value="pos"></option></select>
+    </div>
+    <div class="ctl deg-only">
+      <span class="lbl">Secondary dimension</span>
+      <select id="h-dim">
+        <option value="contrast">Low contrast</option>
+        <option value="noise">Pixel noise</option>
+      </select>
+    </div>
+    <div class="ctl deg-only">
+      <label for="h-level"><span class="lvl-name">Target degradation</span> <output id="ho-level"></output></label>
+      <input id="h-level" type="range" min="0" max="100" step="5" value="80">
+    </div>
+    <div class="ctl">
+      <span class="lbl">Trials</span>
+      <select id="h-n">
+        <option value="39">39 (about 2 min)</option>
+        <option value="65" selected>65 (about 3 min)</option>
+        <option value="104">104 (about 5 min)</option>
+      </select>
+    </div>
+    <div class="ctl">
+      <span class="lbl">Exposure</span>
+      <select id="h-exp">
+        <option value="500">0.5 s</option>
+        <option value="1000" selected>1 s</option>
+        <option value="0">Until response</option>
+      </select>
+    </div>
+    <div class="ctl">
+      <div class="btns">
+        <button class="b" id="h-start">Start run</button>
+        <button class="b ghost" id="h-stop" disabled>Stop</button>
+      </div>
+      <span class="status" id="h-status">Ready</span>
+    </div>
+  </div>
+
+  <div class="card stage">
+    <canvas id="h-stage" aria-label="Stimulus display"></canvas>
+    <p class="prompt" id="h-prompt"></p>
+    <div class="resp">
+      <button class="b ghost" id="h-left" disabled>← Left</button>
+      <button class="b ghost" id="h-right" disabled>Right →</button>
+    </div>
+  </div>
+
+  <div class="compare">
+    <article class="card method std">
+      <header><h2>Your standard 2AFC result</h2><p id="h-std-meta">No run yet.</p></header>
+      <figure><figcaption>Psychometric function</figcaption><canvas class="psy" id="h-std-psy"></canvas></figure>
+    </article>
+    <article class="card method pmx">
+      <header><h2>Your psychomatrix result</h2><p id="h-pmx-meta">No run yet.</p></header>
+      <div class="heat3" style="grid-template-columns:1fr 1fr">
+        <figure><figcaption>Observed</figcaption><canvas id="h-pmx-obs"></canvas></figure>
+        <figure><figcaption>Model fit</figcaption><canvas id="h-pmx-fit"></canvas></figure>
+      </div>
+      <div class="divbar"><span>chose r<sub>1</sub></span><span class="g"></span><span>chose r<sub>2</sub></span></div>
+      <div class="marg3">
+        <figure><figcaption>Bias b</figcaption><canvas id="h-m-b"></canvas></figure>
+        <figure><figcaption>Target σ<sub>t</sub></figcaption><canvas id="h-m-st"></canvas></figure>
+        <figure><figcaption>Reference σ<sub>r</sub></figcaption><canvas id="h-m-sr"></canvas></figure>
+      </div>
+    </article>
+  </div>
+
+  <div class="card">
+    <h3>Your runs</h3>
+    <p class="prose" style="margin-bottom:8px">Run both methods, then repeat with a different degradation level or inducer condition. Both estimates can move as the target gets harder to see, because visibility changes the illusion. Where they part ways, and increasingly so at high degradation, the difference is the decision bias that standard 2AFC mixes into its PSE.</p>
+    <div class="tablewrap"><table id="h-log"></table></div>
+  </div>
+</section>
+</main>
+
+<footer class="wrap">
+  <p>Model: M. Jogan and A. A. Stocker, “A new two-alternative forced choice method for the unbiased characterization of perceptual bias and discriminability”, <i>Journal of Vision</i> 14(3):20, 2014. Stimuli are drawn in a 720 × 400 px frame; sizes are in frame pixels, orientations in degrees (positive = clockwise).</p>
+</footer>
+
+<div id="tip" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const LAPSE = 0.02;
+
+/* ---------------- stimulus families ----------------
+   The model works on an internal grid (references at -60..60 units). Each family maps one unit to a physical step. */
+const STIMS = {
+  gabor: {
+    name: 'Orientation', unit: '°', scale: 0.15, ctxIsSecondary: false, lvlName: 'Target degradation', ctxName: 'Context',
+    b0Name: 'Perceptual bias, clear target', b1Name: 'Perceptual bias, fully degraded', b1Help: 'The illusion changes with visibility. At the current level',
+    srHelp: 'Encoding noise for the clean, full-contrast references.',
+    swDesc: 'Runs both methods at five degradation levels (0 to 100%) using the settings above, then plots each estimate with ±1 posterior SD. The true perceptual bias changes with visibility (dashed line), and both methods should follow it. The standard PSE follows b − c instead (dotted line), drifting further from the perceptual bias as the target gets noisier, and its single noise estimate cannot say whether the target or the reference got noisier.',
+    ctx: { none: 'No context: target drawn toward vertical as it fades', neg: 'Surround tilted +15° (target looks counter-clockwise)', pos: 'Surround tilted −15° (target looks clockwise)' }, defCtx: 'none',
+    ctxShort: { neg: 'surround +15°', pos: 'surround −15°', none: 'no context' },
+    stdQ: '“Which patch is tilted more clockwise?”', stdPrompt: 'Which patch is tilted more clockwise?',
+    pmxPrompt: 'Which bottom patch has the same orientation as the top one?',
+    pY: 'P(target more clockwise)', axis: 'reference − target (°)',
+    biasHelp: 'Apparent rotation of the clearly visible target, in degrees (positive = clockwise).',
+    critHelp: 'In standard 2AFC the observer hesitates to call the faint target “more clockwise”, more so the harder it is to see.',
+    notes: 'Orientation stimulus: Gabor patches (period 14 px, σ 15 px). The target sits 18–27° clockwise of vertical and the references within ±9° of it, so every patch lies between vertical and the 45° oblique and is biased relative to the same cardinal. Without context, target and references differ only in orientation and visibility: at full visibility the setup is symmetric and no decision bias is expected, and as the target fades its perceived orientation is drawn further toward vertical (or pushed away, depending on the observer). With a surround, an annular grating at 90% contrast tilted ±15° repels the target (tilt illusion) and also makes it more salient than the plain references, so standard 2AFC carries a decision bias even when the target is clearly visible.'
+  },
+  ebb: {
+    name: 'Size', unit: 'px', scale: 0.25, ctxIsSecondary: true, ctxName: 'Inducers (the secondary dimension)',
+    b0Name: 'Perceptual bias, small inducers', b1Name: 'Perceptual bias, large inducers', b1Help: 'Without inducers b = 0. In the current condition',
+    srHelp: 'Encoding noise for the faint discs, the same for target and references.',
+    swDesc: 'Runs both methods once per inducer condition (small, none, large) using the settings above, then plots each estimate with ±1 posterior SD. The inducers are the secondary dimension: they set the perceptual bias (dashed line), and both methods should follow it. With inducers present the target and reference are no longer symmetric, so the standard PSE lands on b − c (dotted line). Without inducers both biases vanish.',
+    ctx: { neg: 'Large inducers (target looks smaller)', pos: 'Small inducers (target looks larger)', none: 'No inducers (control)' }, defCtx: 'neg',
+    ctxShort: { neg: 'large inducers', pos: 'small inducers', none: 'no inducers' },
+    stdQ: '“Which disc is larger?”', stdPrompt: 'Which disc is larger?',
+    pmxPrompt: 'Which bottom disc has the same size as the top one?',
+    pY: 'P(target larger)', axis: 'reference − target diameter (px)',
+    biasHelp: 'Apparent change of the target diameter, in px (positive = looks larger).',
+    critHelp: 'In standard 2AFC the observer hesitates to call the faint target “larger”, more so the harder it is to see.',
+    notes: 'Size stimulus: a 56 px target disc and two reference discs, all at the same fixed low contrast (5% darker than the background). The secondary dimension is the context around the target: six large (72 px, about 22 px away) or ten small (14 px) full-contrast inducers (Ebbinghaus illusion), or none. Large inducers are kept well away from the target because inducers that nearly touch it can weaken or reverse the illusion. With inducers, target and reference are asymmetric and standard 2AFC carries a decision bias; without them the two differ in size alone.'
+  }
+};
+let STIM = 'gabor', STIM_READY = false;
+const U = () => STIMS[STIM];
+
+/* ---------------- math ---------------- */
+function erfc(x) {
+  const z = Math.abs(x), t = 1 / (1 + 0.5 * z);
+  const r = t * Math.exp(-z * z - 1.26551223 + t * (1.00002368 + t * (0.37409196 + t * (0.09678418 +
+    t * (-0.18628806 + t * (0.27886807 + t * (-1.13520398 + t * (1.48851587 + t * (-0.82215223 + t * 0.17087277)))))))));
+  return x >= 0 ? r : 2 - r;
+}
+const Phi = x => 0.5 * erfc(-x / Math.SQRT2);
+function randn() { let u = 0; while (!u) u = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * Math.random()); }
+function geom(a, b, n) { const o = []; for (let i = 0; i < n; i++) o.push(a * Math.pow(b / a, i / (n - 1))); return o; }
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function hash3(x, y, s) { let h = (Math.imul(x, 374761393) + Math.imul(y, 668265263) + Math.imul(s, 982451653)) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16; return (h >>> 0) / 4294967296; }
+function mulberry(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+/* ---------------- reference grid (internal units, offsets from the true target value) ---------------- */
+const REF = []; for (let r = -60; r <= 60; r += 10) REF.push(r);
+const NR = REF.length, NC = NR * NR;
+
+/* ---------------- psychomatrix model: grid over (b, sigma_r, sigma_t) ---------------- */
+const BIAS = []; for (let b = -48; b <= 48; b += 4) BIAS.push(b);
+const SIG = geom(2, 40, 10);
+const NB = BIAS.length, NS = SIG.length, NP = NB * NS * NS;
+const pB = new Float64Array(NP), pSr = new Float64Array(NP), pSt = new Float64Array(NP);
+{ let k = 0; for (let ib = 0; ib < NB; ib++) for (let isr = 0; isr < NS; isr++) for (let ist = 0; ist < NS; ist++) { pB[k] = BIAS[ib]; pSr[k] = SIG[isr]; pSt[k] = SIG[ist]; k++; } }
+
+// probability that r2 is chosen as closer to the target (psychomatrix.m)
+function pmxProb(r1, r2, b, sr, st) {
+  const su = Math.SQRT2 * sr, sv = Math.sqrt(2 * sr * sr + 4 * st * st);
+  const a = Phi((r1 - r2) / su), c = Phi((r1 + r2 - 2 * b) / sv);
+  return LAPSE / 2 + (1 - LAPSE) * (a * c + (1 - a) * (1 - c));
+}
+// cell-major tables: PT[c*NP + k]
+const PT = new Float64Array(NC * NP), LP = new Float64Array(NC * NP), LQ = new Float64Array(NC * NP);
+for (let c = 0; c < NC; c++) {
+  const r1 = REF[Math.floor(c / NR)], r2 = REF[c % NR], base = c * NP;
+  for (let k = 0; k < NP; k++) { const p = pmxProb(r1, r2, pB[k], pSr[k], pSt[k]); PT[base + k] = p; LP[base + k] = Math.log(p); LQ[base + k] = Math.log(1 - p); }
+}
+
+function newPmx() { return { post: new Float64Array(NP).fill(1 / NP), hm: new Float64Array(NC), pm: new Float64Array(NC), n: 0, expH: null, H0: Math.log(NP), next: -1, last: null }; }
+
+// expected posterior entropy for every reference pair (optimaltrial.m)
+function pmxExpH(s) {
+  const post = s.post, lp = new Float64Array(NP); let H0 = 0;
+  for (let k = 0; k < NP; k++) { const w = post[k]; if (w > 1e-300) { lp[k] = Math.log(w); H0 -= w * lp[k]; } else lp[k] = -690; }
+  const E = new Float64Array(NC).fill(NaN);
+  for (let i = 0; i < NR; i++) for (let j = i + 1; j < NR; j++) {
+    const c = i * NR + j, base = c * NP; let pY = 0, pN = 0, SY = 0, SN = 0;
+    for (let k = 0; k < NP; k++) {
+      const w = post[k]; if (w < 1e-12) continue;
+      const a = w * PT[base + k], q = w - a;
+      pY += a; pN += q; SY += a * (lp[k] + LP[base + k]); SN += q * (lp[k] + LQ[base + k]);
+    }
+    const e = (pY > 0 ? pY * Math.log(pY) : 0) - SY + (pN > 0 ? pN * Math.log(pN) : 0) - SN;
+    E[c] = e; E[j * NR + i] = e;
+  }
+  s.expH = E; s.H0 = H0; return E;
+}
+function pmxChoose(s, pert) {
+  const E = pmxExpH(s), cand = [];
+  for (let i = 0; i < NR; i++) for (let j = i + 1; j < NR; j++) cand.push(i * NR + j);
+  cand.sort((a, b) => E[a] - E[b]);
+  const c = cand[Math.floor(Math.random() * Math.min(pert, cand.length))];
+  let i = Math.floor(c / NR), j = c % NR;
+  if (Math.random() < 0.5) [i, j] = [j, i];
+  s.next = i * NR + j; return [i, j];
+}
+function pmxUpdate(s, i, j, choseR2) {
+  const c = i * NR + j, base = c * NP, post = s.post; let Z = 0;
+  for (let k = 0; k < NP; k++) { post[k] *= choseR2 ? PT[base + k] : 1 - PT[base + k]; Z += post[k]; }
+  for (let k = 0; k < NP; k++) post[k] /= Z;
+  s.hm[c]++; if (choseR2) s.pm[c]++; s.n++; s.last = { i, j, choseR2 };
+}
+function moments(post, vals) { let m = 0, m2 = 0; for (let k = 0; k < post.length; k++) { m += post[k] * vals[k]; m2 += post[k] * vals[k] * vals[k]; } return { m, sd: Math.sqrt(Math.max(0, m2 - m * m)) }; }
+const pSc = new Float64Array(NP); for (let k = 0; k < NP; k++) pSc[k] = Math.hypot(pSr[k], pSt[k]);
+function pmxEst(s) { return { b: moments(s.post, pB), sr: moments(s.post, pSr), st: moments(s.post, pSt), sc: moments(s.post, pSc) }; }
+function pmxPredictive(s) { const out = new Float64Array(NC); for (let c = 0; c < NC; c++) { let p = 0; const base = c * NP; for (let k = 0; k < NP; k++) p += s.post[k] * PT[base + k]; out[c] = p; } return out; }
+function pmxMarginals(s) {
+  const b = new Float64Array(NB), sr = new Float64Array(NS), st = new Float64Array(NS);
+  for (let k = 0; k < NP; k++) { const w = s.post[k]; b[Math.floor(k / (NS * NS))] += w; sr[Math.floor(k / NS) % NS] += w; st[k % NS] += w; }
+  return { b, sr, st };
+}
+
+/* ---------------- standard 2AFC model: grid over (PSE, sigma_combined) ---------------- */
+const MU = []; for (let m = -60; m <= 60; m += 1) MU.push(m);
+const SC = geom(1, 80, 40);
+const NSP = MU.length * SC.length;
+const sMu = new Float64Array(NSP), sSc = new Float64Array(NSP);
+{ let k = 0; for (const m of MU) for (const s of SC) { sMu[k] = m; sSc[k] = s; k++; } }
+const stdProb = (r, mu, sc) => LAPSE / 2 + (1 - LAPSE) * Phi((mu - r) / sc);   // P(target judged larger / more clockwise)
+const PS = new Float64Array(NR * NSP);
+for (let l = 0; l < NR; l++) for (let k = 0; k < NSP; k++) PS[l * NSP + k] = stdProb(REF[l], sMu[k], sSc[k]);
+
+function newStd() { return { post: new Float64Array(NSP).fill(1 / NSP), n: new Array(NR).fill(0), k: new Array(NR).fill(0), sched: [], total: 0, last: null }; }
+function stdNext(s) { if (!s.sched.length) s.sched = shuffle([...Array(NR).keys()]); return s.sched.pop(); }
+function stdUpdate(s, l, targetMore) {
+  const post = s.post, base = l * NSP; let Z = 0;
+  for (let k = 0; k < NSP; k++) { post[k] *= targetMore ? PS[base + k] : 1 - PS[base + k]; Z += post[k]; }
+  for (let k = 0; k < NSP; k++) post[k] /= Z;
+  s.n[l]++; if (targetMore) s.k[l]++; s.total++; s.last = { l, targetMore };
+}
+function stdEst(s) { return { mu: moments(s.post, sMu), sc: moments(s.post, sSc) }; }
+function stdCurve(s, xs) {
+  const idx = []; for (let k = 0; k < NSP; k++) if (s.post[k] > 1e-7) idx.push(k);
+  return xs.map(x => { let p = 0; for (const k of idx) p += s.post[k] * stdProb(x, sMu[k], sSc[k]); return p; });
+}
+
+/* ---------------- simulated observer (simulateobserver.m) ---------------- */
+function simStd(o, r) { if (Math.random() < LAPSE) return Math.random() < 0.5; return (o.b + o.st * randn()) - (r + o.sr * randn()) > o.c; }
+function simPmx(o, r1, r2) {
+  if (Math.random() < LAPSE) return Math.random() < 0.5;
+  const t = o.b + o.st * randn();
+  return Math.abs(r1 + o.sr * randn() - t) > Math.abs(r2 + o.sr * randn() - t);   // true = r2 closer
+}
+
+/* ---------------- stimulus layout ---------------- */
+function jit(a) { return (Math.random() * 2 - 1) * a; }
+// target 18–27° clockwise of vertical; with references at ±9° every patch stays between vertical and the 45° oblique,
+// so all of them are biased relative to the same cardinal
+const baseTheta = () => 18 + Math.random() * 9;
+function layoutStd(r, targetLeft) {
+  const L = { x: 190 + jit(15), y: 200 + jit(20) }, R = { x: 530 + jit(15), y: 200 + jit(20) };
+  const t = targetLeft ? L : R, f = targetLeft ? R : L;
+  return { test: t, refs: [{ ...f, off: r }], seed: (Math.random() * 1e9) | 0, theta0: baseTheta() };
+}
+function layoutPmx(rl, rr) {
+  return { test: { x: 360 + jit(15), y: 124 + jit(4) },
+    refs: [{ x: 190 + jit(20), y: 316 + jit(12), off: rl }, { x: 530 + jit(20), y: 316 + jit(12), off: rr }],
+    seed: (Math.random() * 1e9) | 0, theta0: baseTheta() };
+}
+
+/* ---------------- pixel renderer ----------------
+   Everything is drawn into a luminance buffer in frame coordinates (720 x 400) at k device pixels per frame pixel. */
+const BG = 128;
+function box(F, cx, cy, R, fn) {
+  const { k, W, H } = F;
+  const x0 = Math.max(0, Math.floor((cx - R) * k)), x1 = Math.min(W, Math.ceil((cx + R) * k));
+  const y0 = Math.max(0, Math.floor((cy - R) * k)), y1 = Math.min(H, Math.ceil((cy + R) * k));
+  for (let py = y0; py < y1; py++) { const ly = (py + 0.5) / k - cy; for (let px = x0; px < x1; px++) fn(py * W + px, (px + 0.5) / k - cx, ly); }
+}
+function disc(F, cx, cy, r, lum) {
+  const L = F.L, k = F.k;
+  box(F, cx, cy, r + 1, (i, dx, dy) => { const a = Math.min(1, Math.max(0, (r - Math.hypot(dx, dy)) * k + 0.5)); if (a > 0) L[i] += a * (lum - L[i]); });
+}
+// orientation theta in degrees, clockwise from vertical; stripes run along theta
+function grating(F, cx, cy, theta, contrast, phase, envFn, R) {
+  const L = F.L, th = theta * Math.PI / 180, cs = Math.cos(th), sn = Math.sin(th), f = 2 * Math.PI / 14;
+  box(F, cx, cy, R, (i, dx, dy) => { const e = envFn(Math.hypot(dx, dy)); if (e > 1e-3) L[i] += 127 * contrast * e * Math.cos(f * (dx * cs + dy * sn) + phase); });
+}
+const gaborEnv = r => Math.exp(-r * r / (2 * 15 * 15));
+const ringEnv = r => { const a = 54, b = 100, w = 6; if (r < a - w || r > b + w) return 0; if (r < a) return 0.5 - 0.5 * Math.cos(Math.PI * (r - a + w) / w); if (r > b) return 0.5 + 0.5 * Math.cos(Math.PI * (r - b) / w); return 1; };
+function noise(F, cx, cy, R, amp, seed) {
+  const L = F.L;
+  box(F, cx, cy, R + 2, (i, dx, dy) => {
+    const r = Math.hypot(dx, dy), m = r < R - 2 ? 1 : r > R + 2 ? 0 : 0.5 - 0.5 * Math.sin(Math.PI * (r - R) / 4);
+    if (m > 0) L[i] += m * amp * (2 * hash3(Math.floor((dx + 200) / 2), Math.floor((dy + 200) / 2), seed) - 1);
+  });
+}
+function renderTarget(F, spec) {
+  const t = spec.test, lvl = spec.level, rng = mulberry(spec.seed);
+  if (spec.stim === 'ebb') {
+    const rot = rng() * Math.PI * 2;
+    if (spec.ctx === 'neg') for (let n = 0; n < 6; n++) { const a = rot + n * Math.PI / 3; disc(F, t.x + 86 * Math.cos(a), t.y + 86 * Math.sin(a), 36, 40); }
+    if (spec.ctx === 'pos') for (let n = 0; n < 10; n++) { const a = rot + n * Math.PI / 5; disc(F, t.x + 42 * Math.cos(a), t.y + 42 * Math.sin(a), 7, 40); }
+    ebbDisc(F, spec, t.x, t.y, 28, spec.seed);
+  } else {
+    if (spec.ctx !== 'none') grating(F, t.x, t.y, spec.theta0 + (spec.ctx === 'neg' ? 15 : -15), 0.9, rng() * 6.283, ringEnv, 107);
+    const c = spec.dim === 'contrast' ? 0.9 * (1 - 0.96 * lvl) : 0.9;
+    grating(F, t.x, t.y, spec.theta0, c, rng() * 6.283, gaborEnv, 46);
+    if (spec.dim === 'noise' && lvl > 0) noise(F, t.x, t.y, 44, 150 * lvl, spec.seed);
+  }
+}
+// target and reference discs look alike, so only the inducers distinguish them
+const EBB_DISC = BG * 0.95;   // target and reference discs: fixed low contrast (5% below background)
+function ebbDisc(F, spec, x, y, r) { disc(F, x, y, r, EBB_DISC); }
+function renderRef(F, spec, r, n) {
+  const s = STIMS[spec.stim];
+  if (spec.stim === 'ebb') ebbDisc(F, spec, r.x, r.y, (56 + r.off * s.scale) / 2, spec.seed + 101 * (n + 1));
+  else grating(F, r.x, r.y, spec.theta0 + r.off * s.scale, 0.9, hash3(n, 7, spec.seed) * 6.283, gaborEnv, 46);
+}
+const OFF = document.createElement('canvas');
+function drawStim(cv, spec) {
+  const g = prep(cv); if (!g) return;
+  const { ctx, w, h } = g, dpr = window.devicePixelRatio || 1;
+  const k = Math.min(2, w * dpr / 720), W = Math.round(720 * k), H = Math.round(400 * k);
+  const F = { k, W, H, L: new Float32Array(W * H).fill(BG) };
+  if (spec && spec.test) renderTarget(F, spec);
+  if (spec && spec.refs) spec.refs.forEach((r, n) => renderRef(F, spec, r, n));
+  OFF.width = W; OFF.height = H;
+  const octx = OFF.getContext('2d'), img = octx.createImageData(W, H), d = img.data;
+  for (let i = 0, j = 0; i < F.L.length; i++, j += 4) { const v = F.L[i] < 0 ? 0 : F.L[i] > 255 ? 255 : F.L[i] + 0.5 | 0; d[j] = d[j + 1] = d[j + 2] = v; d[j + 3] = 255; }
+  octx.putImageData(img, 0, 0);
+  ctx.imageSmoothingEnabled = true; ctx.drawImage(OFF, 0, 0, w, h);
+  if (spec && spec.fix) {
+    const s = w / 720; ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = 2 * s; ctx.beginPath();
+    ctx.moveTo(352 * s, 200 * s); ctx.lineTo(368 * s, 200 * s); ctx.moveTo(360 * s, 192 * s); ctx.lineTo(360 * s, 208 * s); ctx.stroke();
+  }
+}
+function drawIcon(cv, stim) {
+  const spec = stim === 'ebb'
+    ? { stim, ctx: 'neg', dim: 'contrast', level: 0.55, refs: [], seed: 3, theta0: 0 }
+    : { stim, ctx: 'neg', dim: 'contrast', level: 0.45, refs: [], seed: 3, theta0: 22 };
+  // render a 220 px window around the target
+  const k = cv.width / 250, W = cv.width, H = cv.height, F = { k, W, H, L: new Float32Array(W * H).fill(BG) };
+  spec.test = { x: 125, y: 125 }; renderTarget(F, spec);
+  const c2 = cv.getContext('2d'), img = c2.createImageData(W, H), d = img.data;
+  for (let i = 0, j = 0; i < F.L.length; i++, j += 4) { const v = Math.max(0, Math.min(255, F.L[i] + 0.5 | 0)); d[j] = d[j + 1] = d[j + 2] = v; d[j + 3] = 255; }
+  c2.putImageData(img, 0, 0);
+}
+
+/* ---------------- unit formatting ---------------- */
+function niceStep(raw) { const p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p; return (m < 1.5 ? 1 : m < 2.25 ? 2 : m < 3.5 ? 2.5 : m < 7.5 ? 5 : 10) * p; }
+function fmtNum(v, dec) { return Math.abs(v).toFixed(dec).replace(/\.?0+$/, '') || '0'; }
+const sgnP = (v, dec = 1) => { const s = fmtNum(v, dec); return (s === '0' ? '' : v > 0 ? '+' : '−') + s; };
+const phys = (v, u) => v * u.scale;
+// ticks (internal units) at a nice physical step, symmetric around 0
+function symTicks(maxUnits, u, n) { const lim = maxUnits * u.scale, st = niceStep(lim * 2 / n), out = []; for (let v = -Math.floor(lim / st + 1e-9) * st; v <= lim + 1e-9; v += st) out.push(v / u.scale); return out; }
+
+/* ---------------- chart helpers ---------------- */
+let TK = {};
+function readTokens() {
+  const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
+  TK = { ink: g('--ink'), ink2: g('--ink-2'), ink3: g('--ink-3'), rule: g('--rule'), panel: g('--panel'), std: g('--std'), pmx: g('--pmx'), pmx2: g('--pmx-2'),
+    truth: g('--truth'), lo: hex(g('--div-lo')), mid: hex(g('--div-mid')), hi: hex(g('--div-hi')), slo: hex(g('--seq-lo')), shi: hex(g('--seq-hi')), data: g('--font-data') };
+}
+function hex(h) { h = h.replace('#', ''); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); }
+function mix(a, b, t) { return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`; }
+function divColor(p) { const t = (p - 0.5) * 2; return t < 0 ? mix(TK.mid, TK.lo, Math.min(1, -t)) : mix(TK.mid, TK.hi, Math.min(1, t)); }
+function prep(cv) {
+  const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+  if (!w || !h) return null;
+  const W = Math.round(w * dpr), H = Math.round(h * dpr);
+  if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+  return { ctx, w, h };
+}
+function txt(ctx, s, x, y, align = 'left', base = 'alphabetic', color = TK.ink3, size = 11) {
+  ctx.fillStyle = color; ctx.font = `${size}px ${TK.data}`; ctx.textAlign = align; ctx.textBaseline = base; ctx.fillText(s, x, y);
+}
+function vline(ctx, x, y0, y1, color, dash) { ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = 1.5; if (dash) ctx.setLineDash(dash); ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke(); ctx.restore(); }
+function marker(ctx, x, y, r, shape, fill) {
+  ctx.beginPath();
+  if (shape === 'square') ctx.rect(x - r * .9, y - r * .9, r * 1.8, r * 1.8);
+  else if (shape === 'diamond') { ctx.moveTo(x, y - r * 1.2); ctx.lineTo(x + r * 1.2, y); ctx.lineTo(x, y + r * 1.2); ctx.lineTo(x - r * 1.2, y); ctx.closePath(); }
+  else ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = fill; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = TK.panel; ctx.stroke();
+}
+const nearest = pts => (mx, my) => { let best = null, bd = 196; for (const p of pts) { const d = (p.x - mx) ** 2 + (p.y - my) ** 2; if (d < bd) { bd = d; best = p.html; } } return best; };
+
+// psychometric function (internal units, labelled in physical units)
+function drawPsy(cv, s, truthB, u, truthPSE) {
+  const g = prep(cv); if (!g) return; const { ctx, w, h } = g;
+  const L = 44, R = 12, T = 12, B = 36, pw = w - L - R, ph = h - T - B;
+  const X = v => L + (v + 66) / 132 * pw, Y = p => T + (1 - p) * ph;
+  ctx.strokeStyle = TK.rule; ctx.lineWidth = 1;
+  for (const p of [0, .5, 1]) { ctx.beginPath(); ctx.moveTo(L, Y(p)); ctx.lineTo(L + pw, Y(p)); ctx.stroke(); txt(ctx, p.toFixed(1), L - 6, Y(p), 'right', 'middle'); }
+  for (const v of symTicks(60, u, 4)) txt(ctx, sgnP(phys(v, u)), X(v), T + ph + 6, 'center', 'top');
+  txt(ctx, u.axis, L + pw / 2, h - 2, 'center', 'bottom', TK.ink2);
+  ctx.save(); ctx.translate(11, T + ph / 2); ctx.rotate(-Math.PI / 2); txt(ctx, u.pY, 0, 0, 'center', 'middle', TK.ink2); ctx.restore();
+  const pts = [];
+  if (truthB != null) { vline(ctx, X(truthB), T, T + ph, TK.truth, [4, 3]); txt(ctx, 'true b', X(truthB) + 4, T + 10, 'left', 'alphabetic', TK.ink2); }
+  if (truthPSE != null && Math.abs(truthPSE - truthB) > 0.5) { vline(ctx, X(truthPSE), T + 16, T + ph, TK.truth, [1.5, 3]); txt(ctx, 'b − c', X(truthPSE) + (truthPSE < truthB ? -4 : 4), T + 26, truthPSE < truthB ? 'right' : 'left', 'alphabetic', TK.ink2); }
+  if (s && s.total > 0) {
+    const xs = []; for (let x = -66; x <= 66; x += 2) xs.push(x);
+    const ys = stdCurve(s, xs);
+    ctx.strokeStyle = TK.std; ctx.lineWidth = 2; ctx.beginPath(); xs.forEach((x, i) => i ? ctx.lineTo(X(x), Y(ys[i])) : ctx.moveTo(X(x), Y(ys[i]))); ctx.stroke();
+    const e = stdEst(s);
+    vline(ctx, X(e.mu.m), Y(.5) - 10, T + ph, TK.std);
+    txt(ctx, `PSE ${sgnP(phys(e.mu.m, u))}${u.unit}`, X(e.mu.m) + (e.mu.m > 25 ? -4 : 4), T + ph - 6, e.mu.m > 25 ? 'right' : 'left', 'alphabetic', TK.ink);
+    for (let l = 0; l < NR; l++) if (s.n[l]) {
+      const x = X(REF[l]), y = Y(s.k[l] / s.n[l]), r = 3 + Math.min(4, Math.sqrt(s.n[l]));
+      marker(ctx, x, y, r, 'circle', TK.std);
+      pts.push({ x, y, html: `reference ${sgnP(phys(REF[l], u))}${u.unit}<br>${s.k[l]}/${s.n[l]} target chosen (${Math.round(100 * s.k[l] / s.n[l])}%)` });
+    }
+  } else txt(ctx, 'no trials yet', L + pw / 2, T + ph / 2 - 14, 'center', 'middle');
+  cv._hit = nearest(pts);
+}
+
+// heatmap over (r1, r2): rows r1 (bottom→top), cols r2
+function drawHeat(cv, opt) {
+  const g = prep(cv); if (!g) return; const { ctx, w, h } = g, u = opt.u;
+  const L = 32, B = 30, T = 4, R = 4, size = Math.min(w - L - R, h - T - B), cw = size / NR;
+  const x0 = L, y0 = T;
+  const cx = j => x0 + j * cw, cy = i => y0 + (NR - 1 - i) * cw;
+  const pos = r => (r + 60) / 10 + 0.5;
+  for (let i = 0; i < NR; i++) for (let j = 0; j < NR; j++) {
+    const c = i * NR + j, col = opt.color(c);
+    ctx.fillStyle = col || TK.rule; ctx.globalAlpha = col ? 1 : 0.35;
+    ctx.fillRect(cx(j) + 0.5, cy(i) + 0.5, cw - 1, cw - 1);
+  }
+  ctx.globalAlpha = 1;
+  if (opt.ring != null && opt.ring >= 0) { const i = Math.floor(opt.ring / NR), j = opt.ring % NR; ctx.strokeStyle = TK.ink; ctx.lineWidth = 2; ctx.strokeRect(cx(j) + 1, cy(i) + 1, cw - 2, cw - 2); }
+  ctx.save(); ctx.beginPath(); ctx.rect(x0, y0, size, size); ctx.clip();
+  ctx.strokeStyle = TK.ink3; ctx.lineWidth = 1; ctx.globalAlpha = .5; ctx.beginPath(); ctx.moveTo(x0, y0 + size); ctx.lineTo(x0 + size, y0); ctx.stroke(); ctx.globalAlpha = 1;
+  if (opt.anti != null) {
+    const b = opt.anti, P = (r2, r1) => [x0 + pos(r2) * cw, y0 + size - pos(r1) * cw];
+    const [ax, ay] = P(-80, 2 * b + 80), [bx, by] = P(2 * b + 80, -80);
+    ctx.strokeStyle = TK.ink; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+  }
+  ctx.restore();
+  for (const v of [-60, 0, 60]) {
+    const j = (v + 60) / 10, lab = sgnP(phys(v, u));
+    txt(ctx, lab, cx(j) + cw / 2, y0 + size + 4, 'center', 'top', TK.ink3, 10);
+    txt(ctx, lab, x0 - 4, cy(j) + cw / 2, 'right', 'middle', TK.ink3, 10);
+  }
+  txt(ctx, `r₂ (${u.unit})`, x0 + size / 2, y0 + size + 29, 'center', 'bottom', TK.ink2, 11);
+  ctx.save(); ctx.translate(8, y0 + size / 2); ctx.rotate(-Math.PI / 2); txt(ctx, 'r₁', 0, 0, 'center', 'middle', TK.ink2, 11); ctx.restore();
+  cv._hit = (mx, my) => {
+    const j = Math.floor((mx - x0) / cw), i = NR - 1 - Math.floor((my - y0) / cw);
+    if (i < 0 || j < 0 || i >= NR || j >= NR) return null;
+    return `r₁ ${sgnP(phys(REF[i], u))}${u.unit} · r₂ ${sgnP(phys(REF[j], u))}${u.unit}<br>${opt.tip(i * NR + j)}`;
+  };
+}
+
+// posterior marginal
+function drawMarg(cv, xs, ps, truth, logx, u) {
+  const g = prep(cv); if (!g) return; const { ctx, w, h } = g;
+  const L = 8, R = 8, T = 8, B = 20, pw = w - L - R, ph = h - T - B;
+  const f = logx ? Math.log : v => v, a = f(xs[0]), z = f(xs[xs.length - 1]);
+  const X = v => L + (f(v) - a) / (z - a) * pw;
+  let mx = 0; for (const p of ps) mx = Math.max(mx, p);
+  const Y = p => T + ph - (mx ? p / mx : 0) * ph;
+  ctx.strokeStyle = TK.rule; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(L, T + ph); ctx.lineTo(L + pw, T + ph); ctx.stroke();
+  if (mx) {
+    ctx.beginPath(); ctx.moveTo(X(xs[0]), T + ph); xs.forEach((x, i) => ctx.lineTo(X(x), Y(ps[i]))); ctx.lineTo(X(xs[xs.length - 1]), T + ph); ctx.closePath();
+    ctx.fillStyle = TK.pmx; ctx.globalAlpha = .22; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.beginPath(); xs.forEach((x, i) => i ? ctx.lineTo(X(x), Y(ps[i])) : ctx.moveTo(X(x), Y(ps[i]))); ctx.strokeStyle = TK.pmx; ctx.lineWidth = 2; ctx.stroke();
+  }
+  if (truth != null) vline(ctx, X(Math.min(Math.max(truth, xs[0]), xs[xs.length - 1])), T, T + ph, TK.truth, [4, 3]);
+  const ticks = logx ? [0.2, 0.5, 1, 2, 5, 10, 20].map(t => t / u.scale).filter(t => t >= xs[0] * 0.98 && t <= xs[xs.length - 1] * 1.02) : symTicks(44, u, 2);
+  for (const t of ticks) txt(ctx, logx ? fmtNum(phys(t, u), 1) : sgnP(phys(t, u)), X(t), T + ph + 4, 'center', 'top', TK.ink3, 10);
+  cv._hit = null;
+}
+
+// sweep line chart (values already in physical units)
+function drawSweep(cv, series, truths, unit, ax) {
+  const g = prep(cv); if (!g) return; const { ctx, w, h } = g;
+  const L = 44, R = 64, T = 12, B = 34, pw = w - L - R, ph = h - T - B;
+  let lo = Infinity, hi = -Infinity;
+  for (const s of series) for (const p of s.pts) { lo = Math.min(lo, p.m - p.sd); hi = Math.max(hi, p.m + p.sd); }
+  for (const t of truths) for (const v of t.ys) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+  if (!isFinite(lo)) { lo = 0; hi = 1; }
+  if (hi - lo < 1) { const m = (hi + lo) / 2; lo = m - 1; hi = m + 1; }
+  const span = hi - lo, step = niceStep(span / 4);
+  lo = Math.floor((lo - span * .05) / step) * step; hi = Math.ceil((hi + span * .05) / step) * step;
+  const X = v => L + v / 100 * pw, Y = v => T + (hi - v) / (hi - lo) * ph;
+  ctx.strokeStyle = TK.rule; ctx.lineWidth = 1;
+  for (let v = lo; v <= hi + step * 1e-6; v += step) { ctx.beginPath(); ctx.moveTo(L, Y(v)); ctx.lineTo(L + pw, Y(v)); ctx.stroke(); txt(ctx, sgnP(v, 2), L - 6, Y(v), 'right', 'middle'); }
+  for (const q of ax.ticks) txt(ctx, q.t, X(q.x), T + ph + 6, 'center', 'top');
+  txt(ctx, ax.label, L + pw / 2, h - 2, 'center', 'bottom', TK.ink2);
+  for (const t of truths) {
+    ctx.save(); ctx.strokeStyle = TK.truth; ctx.lineWidth = 1.5; ctx.setLineDash(t.dash || [4, 3]); ctx.beginPath();
+    t.xs.forEach((x, i) => i ? ctx.lineTo(X(x), Y(t.ys[i])) : ctx.moveTo(X(x), Y(t.ys[i]))); ctx.stroke(); ctx.restore();
+  }
+  const pts = [], labels = [];
+  for (const s of series) {
+    if (!s.pts.length) continue;
+    ctx.strokeStyle = s.color; ctx.lineWidth = 2; ctx.beginPath();
+    s.pts.forEach((p, i) => i ? ctx.lineTo(X(p.x), Y(p.m)) : ctx.moveTo(X(p.x), Y(p.m))); ctx.stroke();
+    for (const p of s.pts) {
+      ctx.strokeStyle = s.color; ctx.lineWidth = 1.5; ctx.globalAlpha = .6; ctx.beginPath(); ctx.moveTo(X(p.x), Y(p.m - p.sd)); ctx.lineTo(X(p.x), Y(p.m + p.sd)); ctx.stroke(); ctx.globalAlpha = 1;
+      marker(ctx, X(p.x), Y(p.m), 4.5, s.shape, s.color);
+      pts.push({ x: X(p.x), y: Y(p.m), html: `${s.name}<br>${(ax.ticks.find(q => q.x === p.x) || {}).t}: ${p.m.toFixed(2)} ± ${p.sd.toFixed(2)} ${unit}${p.truth != null ? `<br>truth ${p.truth.toFixed(2)} ${unit}` : ''}` });
+    }
+    const last = s.pts[s.pts.length - 1]; labels.push({ y: Y(last.m), text: s.label });
+  }
+  labels.sort((a, b) => a.y - b.y);
+  for (let i = 1; i < labels.length; i++) if (labels[i].y - labels[i - 1].y < 13) labels[i].y = labels[i - 1].y + 13;
+  for (const l of labels) txt(ctx, l.text, L + pw + 8, l.y, 'left', 'middle', TK.ink, 11);
+  if (!pts.length) txt(ctx, 'run the sweep to fill this chart', L + pw / 2, T + ph / 2, 'center', 'middle');
+  cv._hit = nearest(pts);
+}
+
+function drawPmxSet(ids, s, truth, u) {
+  const est = s.n ? pmxEst(s) : null;
+  drawHeat($(ids.obs), {
+    u, color: c => s.hm[c] ? divColor(s.pm[c] / s.hm[c]) : null,
+    tip: c => s.hm[c] ? `chose r₂ ${s.pm[c]}/${s.hm[c]}` : 'not tested yet',
+    ring: s.last ? s.last.i * NR + s.last.j : -1
+  });
+  const pred = pmxPredictive(s);
+  drawHeat($(ids.fit), {
+    u, color: c => divColor(pred[c]), anti: est ? est.b.m : null,
+    tip: c => `model P(r₂) = ${pred[c].toFixed(2)}${s.hm[c] ? `<br>observed ${s.pm[c]}/${s.hm[c]}` : ''}`
+  });
+  if (ids.info) {
+    const E = s.expH || pmxExpH(s); let mx = 0; const gain = new Float64Array(NC);
+    for (let c = 0; c < NC; c++) { gain[c] = isNaN(E[c]) ? NaN : Math.max(0, s.H0 - E[c]); if (gain[c] > mx) mx = gain[c]; }
+    drawHeat($(ids.info), {
+      u, color: c => isNaN(gain[c]) ? null : mix(TK.slo, TK.shi, mx ? Math.pow(gain[c] / mx, 0.7) : 0),
+      tip: c => isNaN(gain[c]) ? 'r₁ = r₂ carries no information' : `expected gain ${(gain[c] / Math.LN2).toFixed(3)} bits`,
+      ring: s.next
+    });
+  }
+  const m = pmxMarginals(s);
+  drawMarg($(ids.mb), BIAS, m.b, truth && truth.b, false, u);
+  drawMarg($(ids.mst), SIG, m.st, truth && truth.st, true, u);
+  drawMarg($(ids.msr), SIG, m.sr, truth && truth.sr, true, u);
+}
+
+/* ---------------- tooltips ---------------- */
+const tip = $('#tip');
+document.addEventListener('pointermove', e => {
+  const cv = e.target; const html = cv && cv.tagName === 'CANVAS' && cv._hit ? cv._hit(e.offsetX, e.offsetY) : null;
+  if (!html) { tip.style.opacity = 0; return; }
+  tip.innerHTML = html; tip.style.opacity = 1;
+  const r = tip.getBoundingClientRect(); let x = e.clientX + 14, y = e.clientY + 14;
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+  if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 14;
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+});
+
+/* ---------------- table formatting (physical units) ---------------- */
+const fS = (e, u) => `${sgnP(phys(e.m, u), 2)} <span class="sd">± ${fmtNum(phys(e.sd, u), 2)}</span>`;
+const fU = (e, u) => `${fmtNum(phys(e.m, u), 2)} <span class="sd">± ${fmtNum(phys(e.sd, u), 2)}</span>`;
+
+/* ======================= SIMULATION TAB ======================= */
+const S = { std: newStd(), pmx: newPmx(), trial: 0, running: false, timer: null, stdSpec: null, pmxSpec: null };
+// observer at a given degradation level: perceptual bias and target noise both depend on visibility;
+// the decision bias (standard 2AFC only) grows with the extra uncertainty about the target
+// Orientation degrades the target only; Ebbinghaus degrades every disc alike (only the inducers differ).
+// Decision bias (standard 2AFC only): z0 is a criterion from context asymmetry in units of the observer's uncertainty,
+// so its physical size grows as the comparison gets noisier; kappa adds a term for extra uncertainty about the target.
+// Ebbinghaus: the inducers are the secondary dimension; discs are equally faint, so sigma_t = sigma_r, and only
+// the inducer condition sets the perceptual bias and (through the asymmetry it creates) the decision bias.
+function obsAt(base, level) {
+  if (STIMS[STIM].ctxIsSecondary) {
+    const sr = base.sr0, st = sr, has = base.ctx !== 'none';
+    return { ...base, level, sr, st, b: base.ctx === 'pos' ? base.b0 : base.ctx === 'neg' ? base.b1 : 0, c: has ? base.z0 * Math.hypot(st, sr) : 0 };
+  }
+  const sr = base.sr0, st = sr + 24 * level;
+  return { ...base, level, sr, st, b: base.b0 + (base.b1 - base.b0) * level, c: base.z0 * Math.hypot(st, sr) + base.kappa * (st - sr) };
+}
+function readObs() {
+  const base = { b0: +$('#s-b0').value, b1: +$('#s-b1').value, sr0: +$('#s-sr').value, z0: +$('#s-c0').value, kappa: +$('#s-kappa').value,
+    ctx: $('#s-ctx').value, dim: $('#s-dim').value, N: +$('#s-n').value };
+  return obsAt(base, +$('#s-level').value / 100);
+}
+function syncOutputs() {
+  const o = readObs(), u = U(), un = ' ' + u.unit;
+  $('#o-bias').textContent = sgnP(phys(o.b, u), 2) + un; $('#o-b0').textContent = sgnP(phys(o.b0, u), 2) + un; $('#o-b1').textContent = sgnP(phys(o.b1, u), 2) + un;
+  $('#o-kappa').textContent = sgnP(o.kappa, 2); $('#o-c0').textContent = sgnP(o.z0, 2) + ' SD'; $('#o-sr').textContent = fmtNum(phys(o.sr0, u), 2) + un;
+  $('#o-level').textContent = Math.round(o.level * 100) + '%';
+  $('#s-level-help').innerHTML = `Only the target fades: σ<sub>t</sub> = <span class="num">${fmtNum(phys(o.st, u), 2)}${un}</span>, σ<sub>r</sub> stays at ${fmtNum(phys(o.sr, u), 2)}${un}.`;
+  $('#o-crit').textContent = sgnP(phys(o.c, u), 2) + un; $('#o-n').textContent = o.N;
+}
+function simStep() {
+  const o = readObs();
+  if (S.trial >= o.N) return false;
+  const l = stdNext(S.std), r = REF[l], targetLeft = Math.random() < .5;
+  stdUpdate(S.std, l, simStd(o, r));
+  S.stdSpec = layoutStd(r, targetLeft);
+  const [i, j] = S.pmx.next >= 0 ? [Math.floor(S.pmx.next / NR), S.pmx.next % NR] : pmxChoose(S.pmx, 4);
+  pmxUpdate(S.pmx, i, j, simPmx(o, REF[i], REF[j]));
+  S.pmxSpec = Math.random() < .5 ? layoutPmx(REF[i], REF[j]) : layoutPmx(REF[j], REF[i]);
+  S.trial++;
+  if (S.trial < o.N) pmxChoose(S.pmx, 4); else { pmxExpH(S.pmx); S.pmx.next = -1; }
+  return true;
+}
+function simReset() {
+  simStop(); S.std = newStd(); S.pmx = newPmx(); S.trial = 0; S.stdSpec = null; S.pmxSpec = null;
+  pmxChoose(S.pmx, 4); renderSim();
+}
+function simStop() { S.running = false; clearTimeout(S.timer); $('#s-run').textContent = S.trial && S.trial < readObs().N ? 'Resume' : 'Run'; }
+function simRun() {
+  if (S.running) { simStop(); return; }
+  if (S.trial >= readObs().N) simReset();
+  const speed = $('#s-speed').value;
+  if (speed === 'instant') { while (simStep()); renderSim(); simStop(); return; }
+  S.running = true; $('#s-run').textContent = 'Pause';
+  const per = speed === 'watch' ? 1 : 4, delay = speed === 'watch' ? 125 : 66;
+  const tick = () => {
+    if (!S.running) return;
+    let more = true; for (let n = 0; n < per && more; n++) more = simStep();
+    renderSim();
+    if (more && S.trial < readObs().N) S.timer = setTimeout(tick, delay); else simStop();
+  };
+  tick();
+}
+const withStim = (spec, o) => spec ? { ...spec, stim: STIM, ctx: o.ctx, dim: o.dim, level: o.level } : null;
+function renderSim() {
+  readTokens();
+  const o = readObs(), u = U();
+  syncOutputs();
+  $('#s-status').textContent = `Trial ${S.trial} / ${o.N}`;
+  if (!S.demoStd) { S.demoStd = layoutStd(0, true); S.demoPmx = layoutPmx(-30, 30); }
+  drawStim($('#sim-std-stim'), withStim(S.stdSpec || S.demoStd, o));
+  drawStim($('#sim-pmx-stim'), withStim(S.pmxSpec || S.demoPmx, o));
+  drawPsy($('#sim-std-psy'), S.std, o.b, u, o.b - o.c);
+  drawPmxSet({ obs: '#sim-pmx-obs', fit: '#sim-pmx-fit', info: '#sim-pmx-info', mb: '#sim-m-b', mst: '#sim-m-st', msr: '#sim-m-sr' }, S.pmx, o, u);
+  renderSimTable(o, u);
+}
+function renderSimTable(o, u) {
+  const sc = Math.hypot(o.st, o.sr), un = u.unit;
+  const has = S.trial > 0, se = has ? stdEst(S.std) : null, pe = has ? pmxEst(S.pmx) : null;
+  const d = '<td class="na">—</td>', P = v => sgnP(phys(v, u), 2), A = v => fmtNum(phys(v, u), 2);
+  $('#sim-table').innerHTML = `
+    <tr><th>Quantity (${un})</th><th>Truth</th><th><span class="sw" style="background:var(--std)"></span>Standard 2AFC</th><th><span class="sw" style="background:var(--pmx)"></span>Psychomatrix</th></tr>
+    <tr><td>Perceptual bias b <span class="sd">(at this level)</span></td><td class="n">${P(o.b)}</td>${has ? `<td class="n">${fS(se.mu, u)} <span class="sd">(PSE)</span></td><td class="n">${fS(pe.b, u)}</td>` : d + d}</tr>
+    <tr><td>Target noise σ<sub>t</sub></td><td class="n">${A(o.st)}</td><td class="na">not separable</td>${has ? `<td class="n">${fU(pe.st, u)}</td>` : d}</tr>
+    <tr><td>Reference noise σ<sub>r</sub></td><td class="n">${A(o.sr)}</td><td class="na">not separable</td>${has ? `<td class="n">${fU(pe.sr, u)}</td>` : d}</tr>
+    <tr><td>Combined √(σ<sub>t</sub>² + σ<sub>r</sub>²)</td><td class="n">${A(sc)}</td>${has ? `<td class="n">${fU(se.sc, u)}</td><td class="n">${fU(pe.sc, u)}</td>` : d + d}</tr>
+    <tr><td>Decision bias c</td><td class="n">${P(o.c)}</td><td class="na">mixed into the PSE (PSE ≈ b − c = ${P(o.b - o.c)})</td><td class="na">does not enter the decision</td></tr>`;
+  $('#sim-verdict').innerHTML = has
+    ? `After ${S.trial} trials each, the standard PSE misses the perceptual bias by <b>${A(Math.abs(se.mu.m - o.b))} ${un}</b>, because a decision bias of ${P(o.c)} ${un} rides on it ${u.ctxIsSecondary ? 'in this condition' : 'at this level'}; the psychomatrix estimate misses by <b>${A(Math.abs(pe.b.m - o.b))} ${un}</b>. ${u.ctxIsSecondary ? `Only the psychomatrix also estimates target and reference noise separately (σ̂<sub>t</sub> = ${A(pe.st.m)}, σ̂<sub>r</sub> = ${A(pe.sr.m)} ${un}), to compare with the true value of ${A(o.sr)} ${un} for both.` : `Only the psychomatrix also says how much of the noise belongs to the degraded target (σ̂<sub>t</sub> = ${A(pe.st.m)} ${un}) versus the clean reference (σ̂<sub>r</sub> = ${A(pe.sr.m)} ${un}).`}`
+    : 'Press Run to start both experiments on the same simulated observer.';
+}
+
+/* ---------------- sweep ---------------- */
+const SW = { res: [], running: false, base: null };
+// sweep positions: degradation levels, or the three inducer conditions for Ebbinghaus
+function sweepPoints() {
+  return U().ctxIsSecondary ? [{ x: 0, ctx: 'pos', t: 'small' }, { x: 50, ctx: 'none', t: 'none' }, { x: 100, ctx: 'neg', t: 'large' }]
+    : [0, 25, 50, 75, 100].map(x => ({ x, t: x + '%' }));
+}
+const obsForPoint = (base, pt) => U().ctxIsSecondary ? obsAt({ ...base, ctx: pt.ctx }, 0) : obsAt(base, pt.x / 100);
+function sweepOne(o) {
+  const std = newStd(), pmx = newPmx();
+  for (let t = 0; t < o.N; t++) {
+    const l = stdNext(std); stdUpdate(std, l, simStd(o, REF[l]));
+    const [i, j] = pmxChoose(pmx, 4); pmxUpdate(pmx, i, j, simPmx(o, REF[i], REF[j]));
+  }
+  return { se: stdEst(std), pe: pmxEst(pmx) };
+}
+function runSweep() {
+  if (SW.running) return;
+  SW.running = true; SW.res = []; $('#sw-run').disabled = true;
+  const base = readObs(), u = U(), pts = sweepPoints(); let idx = 0; SW.base = base;
+  const next = () => {
+    if (idx >= pts.length) {
+      SW.running = false; $('#sw-run').disabled = false;
+      $('#sw-status').textContent = `Done: ${base.N} trials per method per condition, σr = ${fmtNum(phys(base.sr0, u), 2)} ${u.unit}, b ${sgnP(phys(base.b0, u), 2)} / ${sgnP(phys(base.b1, u), 2)} ${u.unit}, z₀ = ${sgnP(base.z0, 2)} SD, κ = ${sgnP(base.kappa, 2)}`;
+      drawSweepCharts(); return;
+    }
+    const pt = pts[idx]; $('#sw-status').textContent = `Running ${pt.t} (${idx + 1} of ${pts.length})…`;
+    setTimeout(() => {
+      const o = obsForPoint(base, pt);
+      SW.res.push({ lv: pt.x, o, ...sweepOne(o) }); idx++; drawSweepCharts(); next();
+    }, 20);
+  };
+  next();
+}
+function drawSweepCharts() {
+  readTokens();
+  const u = U(), R = SW.res, o0 = R.length && SW.base ? SW.base : readObs(), PTS = sweepPoints(), xs = PTS.map(q => q.x);
+  const at = x => obsForPoint(o0, PTS.find(q => q.x === x));
+  const ax = { ticks: PTS, label: u.ctxIsSecondary ? 'inducers' : 'degradation level' };
+  const p = e => ({ m: phys(e.m, u), sd: phys(e.sd, u) });
+  $('#sw-bias-cap').textContent = `Bias estimate (${u.unit})`; $('#sw-noise-cap').textContent = `Noise estimates (${u.unit})`;
+  drawSweep($('#sw-bias'), [
+    { name: 'Standard PSE', label: 'PSE', color: TK.std, shape: 'circle', pts: R.map(r => ({ x: r.lv, ...p(r.se.mu), truth: phys(r.o.b, u) })) },
+    { name: 'Psychomatrix b̂', label: 'b̂', color: TK.pmx, shape: 'square', pts: R.map(r => ({ x: r.lv, ...p(r.pe.b), truth: phys(r.o.b, u) })) }
+  ], [{ xs, ys: xs.map(l => phys(at(l).b, u)) }, { xs, ys: xs.map(l => { const o = at(l); return phys(o.b - o.c, u); }), dash: [1.5, 3] }], u.unit, ax);
+  drawSweep($('#sw-noise'), [
+    { name: 'Standard combined σ', label: 'σ comb', color: TK.std, shape: 'circle', pts: R.map(r => ({ x: r.lv, ...p(r.se.sc), truth: phys(Math.hypot(r.o.st, r.o.sr), u) })) },
+    { name: 'Psychomatrix σ̂t', label: 'σ̂t', color: TK.pmx, shape: 'square', pts: R.map(r => ({ x: r.lv, ...p(r.pe.st), truth: phys(r.o.st, u) })) },
+    { name: 'Psychomatrix σ̂r', label: 'σ̂r', color: TK.pmx2, shape: 'diamond', pts: R.map(r => ({ x: r.lv, ...p(r.pe.sr), truth: phys(r.o.sr, u) })) }
+  ], [
+    { xs, ys: xs.map(l => phys(at(l).st, u)) },
+    { xs, ys: xs.map(l => { const o = at(l); return phys(Math.hypot(o.st, o.sr), u); }), dash: [1.5, 3] },
+    { xs, ys: xs.map(l => phys(at(l).sr, u)), dash: [6, 4] }
+  ], u.unit, ax);
+}
+
+/* ---------------- sim controls ---------------- */
+$('#s-ctx').addEventListener('change', e => {
+  if (!U().ctxIsSecondary) applyPreset();
+  obsChanged();
+});
+const PRESETS = {   // [b0, b1, sigma_r (internal units), z0 (SD units)]
+  gabor: { none: [0, -16, 5, 0], neg: [-8, -20, 5, 0.35], pos: [8, 20, 5, 0.35] },
+  ebb: { all: [12, -16, 10, 0.5] }   // small-inducer bias, large-inducer bias; faint discs are encoded noisily
+};
+function applyPreset() {
+  const [b0, b1, sr, z0] = PRESETS[STIM][U().ctxIsSecondary ? 'all' : $('#s-ctx').value];
+  $('#s-b0').value = b0; $('#s-b1').value = b1; $('#s-sr').value = sr; $('#s-c0').value = z0;
+}
+// a new observer invalidates the data: preview immediately, then rerun both experiments
+let rerunT;
+function obsChanged() { simStop(); S.std = newStd(); S.pmx = newPmx(); S.trial = 0; S.stdSpec = S.pmxSpec = null; renderSim(); clearTimeout(rerunT); rerunT = setTimeout(simRun, 350); }
+for (const id of ['#s-b0', '#s-b1', '#s-sr', '#s-level', '#s-c0', '#s-kappa']) $(id).addEventListener('input', obsChanged);
+$('#s-dim').addEventListener('input', renderSim);
+$('#s-n').addEventListener('input', () => { if (readObs().N < S.trial) simReset(); else renderSim(); });
+$('#s-run').addEventListener('click', simRun);
+$('#s-step').addEventListener('click', () => { simStop(); if (S.trial >= readObs().N) simReset(); simStep(); renderSim(); simStop(); });
+$('#s-reset').addEventListener('click', simReset);
+$('#sw-run').addEventListener('click', runSweep);
+
+/* ======================= HUMAN TAB ======================= */
+const H = { phase: 'idle', std: null, pmx: null, resStd: null, resPmx: null, cfg: null, trial: 0, cur: null, timers: [], log: [] };
+const H_CTLS = ['#h-method', '#h-ctx', '#h-dim', '#h-level', '#h-n', '#h-exp'];
+function hCfg() { return { stim: STIM, method: $('#h-method').value, ctx: $('#h-ctx').value, dim: $('#h-dim').value, level: +$('#h-level').value / 100, N: +$('#h-n').value, exp: +$('#h-exp').value }; }
+function hTimer(fn, ms) { H.timers.push(setTimeout(fn, ms)); }
+function hClear() { H.timers.forEach(clearTimeout); H.timers = []; }
+function hSetButtons(on) { $('#h-left').disabled = !on; $('#h-right').disabled = !on; }
+function hStage(spec) { H.lastSpec = spec; drawStim($('#h-stage'), spec); }
+function hIdlePrompt() { $('#h-prompt').innerHTML = `Press <kbd>Start run</kbd>, look at the centre and answer with <kbd>←</kbd> / <kbd>→</kbd> or the buttons.`; }
+function hStart() {
+  hClear(); H.cfg = hCfg(); H.trial = 0;
+  if (H.cfg.method === 'std') H.std = newStd(); else H.pmx = newPmx();
+  $('#h-start').disabled = true; $('#h-stop').disabled = false; setPickEnabled(false);
+  for (const id of H_CTLS) $(id).disabled = true;
+  $('#h-prompt').textContent = H.cfg.method === 'std' ? STIMS[H.cfg.stim].stdPrompt : STIMS[H.cfg.stim].pmxPrompt;
+  hNext();
+}
+function hNext() {
+  const c = H.cfg;
+  if (H.trial >= c.N) return hFinish(true);
+  $('#h-status').textContent = `Trial ${H.trial + 1} / ${c.N}`;
+  let spec;
+  if (c.method === 'std') {
+    const l = stdNext(H.std), targetLeft = Math.random() < .5;
+    spec = layoutStd(REF[l], targetLeft); H.cur = { l, targetLeft };
+  } else {
+    const [i, j] = pmxChoose(H.pmx, 3), leftIsR1 = Math.random() < .5;
+    spec = leftIsR1 ? layoutPmx(REF[i], REF[j]) : layoutPmx(REF[j], REF[i]); H.cur = { i, j, leftIsR1 };
+  }
+  Object.assign(spec, { stim: c.stim, ctx: c.ctx, dim: c.dim, level: c.level });
+  H.phase = 'fix'; hSetButtons(false); hStage({ fix: true });
+  hTimer(() => {
+    H.phase = 'resp'; hSetButtons(true); hStage(spec);
+    if (c.exp > 0) hTimer(() => { if (H.phase === 'resp') hStage({}); }, c.exp);
+  }, 450);
+}
+function hRespond(side) {
+  if (H.phase !== 'resp') return;
+  hClear(); H.phase = 'iti'; hSetButtons(false);
+  const c = H.cfg, left = side === 'left';
+  if (c.method === 'std') stdUpdate(H.std, H.cur.l, left === H.cur.targetLeft);
+  else pmxUpdate(H.pmx, H.cur.i, H.cur.j, left ? !H.cur.leftIsR1 : H.cur.leftIsR1);
+  H.trial++; hStage({});
+  hTimer(hNext, 300);
+}
+function hFinish(complete) {
+  hClear(); H.phase = 'idle'; hSetButtons(false);
+  $('#h-start').disabled = false; $('#h-stop').disabled = true; setPickEnabled(true);
+  for (const id of H_CTLS) $(id).disabled = false;
+  const c = H.cfg, u = STIMS[c.stim];
+  if (H.trial > 0) {
+    const meta = `${u.name}, ${u.ctxShort[c.ctx]}, ${u.ctxIsSecondary ? 'faint discs' : `${c.dim === 'contrast' ? 'low contrast' : 'noise'} ${Math.round(c.level * 100)}%`}, ${H.trial} trials${complete ? '' : ' (stopped early)'}.`;
+    const row = { stim: c.stim, method: c.method, ctx: u.ctxShort[c.ctx], dim: c.dim, level: Math.round(c.level * 100), n: H.trial };
+    if (c.method === 'std') { H.resStd = { s: H.std, u }; $('#h-std-meta').textContent = meta; const e = stdEst(H.std); Object.assign(row, { b: e.mu, sc: e.sc }); }
+    else { pmxExpH(H.pmx); H.pmx.next = -1; H.resPmx = { s: H.pmx, u }; $('#h-pmx-meta').textContent = meta; const e = pmxEst(H.pmx); Object.assign(row, { b: e.b, st: e.st, sr: e.sr, sc: e.sc }); }
+    H.log.push(row);
+  }
+  $('#h-status').textContent = complete ? 'Run complete. Results below.' : 'Stopped.';
+  $('#h-prompt').textContent = complete ? 'Done. Change the method or condition and start another run.' : 'Run stopped.';
+  H.preview = null; renderHuman();
+}
+function renderHuman() {
+  readTokens();
+  $('#ho-level').textContent = $('#h-level').value + '%';
+  if (H.phase === 'idle') {
+    const c = hCfg();
+    if (!H.preview || H.preview.method !== c.method) H.preview = { method: c.method, spec: c.method === 'std' ? layoutStd(20, true) : layoutPmx(-30, 30) };
+    hStage({ ...H.preview.spec, stim: c.stim, ctx: c.ctx, dim: c.dim, level: c.level });
+  } else drawStim($('#h-stage'), H.lastSpec);
+  drawPsy($('#h-std-psy'), H.resStd && H.resStd.s, null, H.resStd ? H.resStd.u : U());
+  drawPmxSet({ obs: '#h-pmx-obs', fit: '#h-pmx-fit', mb: '#h-m-b', mst: '#h-m-st', msr: '#h-m-sr' }, H.resPmx ? H.resPmx.s : newPmx(), null, H.resPmx ? H.resPmx.u : U());
+  $('#h-log').innerHTML = `<tr><th>#</th><th>Method</th><th>Stimulus</th><th>Target</th><th>Trials</th><th>Bias / PSE</th><th>σ<sub>t</sub></th><th>σ<sub>r</sub></th><th>Combined σ</th></tr>` +
+    (H.log.length ? H.log.map((r, i) => { const u = STIMS[r.stim], un = ` ${u.unit}`; return `<tr><td class="n">${i + 1}</td><td><span class="sw" style="background:var(${r.method === 'std' ? '--std' : '--pmx'})"></span>${r.method === 'std' ? 'Standard' : 'Psychomatrix'}</td><td>${u.name}, ${r.ctx}</td><td>${u.ctxIsSecondary ? 'faint discs (5%)' : `${r.dim === 'contrast' ? 'low contrast' : 'noise'} ${r.level}%`}</td><td class="n">${r.n}</td>
+      <td class="n">${fS(r.b, u)}${un}</td>${r.st ? `<td class="n">${fU(r.st, u)}</td><td class="n">${fU(r.sr, u)}</td>` : '<td class="na">not separable</td><td class="na">not separable</td>'}<td class="n">${fU(r.sc, u)}</td></tr>`; }).join('')
+      : `<tr><td colspan="9" class="empty">Your finished runs appear here.</td></tr>`);
+}
+$('#h-start').addEventListener('click', hStart);
+$('#h-stop').addEventListener('click', () => hFinish(false));
+$('#h-left').addEventListener('click', () => hRespond('left'));
+$('#h-right').addEventListener('click', () => hRespond('right'));
+for (const id of ['#h-method', '#h-ctx', '#h-dim', '#h-level']) $(id).addEventListener('input', renderHuman);
+document.addEventListener('keydown', e => {
+  if (H.phase === 'idle' || $('#tab-you').hidden) return;
+  if (e.key === 'ArrowLeft' || e.key === 'f') { e.preventDefault(); hRespond('left'); }
+  if (e.key === 'ArrowRight' || e.key === 'j') { e.preventDefault(); hRespond('right'); }
+});
+
+/* ======================= stimulus picker, tabs, theme, resize ======================= */
+function setPickEnabled(on) { for (const k of Object.keys(STIMS)) $('#pick-' + k).disabled = !on; }
+function applyStim(key) {
+  STIM = key; const u = U();
+  for (const k of Object.keys(STIMS)) $('#pick-' + k).setAttribute('aria-pressed', String(k === key));
+  for (const sel of ['#s-ctx', '#h-ctx']) { for (const opt of $(sel).options) opt.textContent = u.ctx[opt.value]; $(sel).value = u.defCtx; }
+  applyPreset();
+  if (STIM_READY) obsChanged();
+  $('#std-q').textContent = u.stdQ; $('#s-bias-help').textContent = u.biasHelp; $('#s-crit-help').textContent = u.critHelp;
+  $('#stim-notes').textContent = u.notes;
+  document.querySelectorAll('.lvl-name').forEach(el => { el.textContent = u.lvlName || ''; });
+  document.querySelectorAll('.ctx-name').forEach(el => { el.textContent = u.ctxName; });
+  document.querySelectorAll('.deg-only').forEach(el => { el.hidden = u.ctxIsSecondary; });
+  $('#b0-name').textContent = u.b0Name; $('#b1-name').textContent = u.b1Name; $('#b1-help').textContent = u.b1Help;
+  $('#sr-help').textContent = u.srHelp; $('#sw-desc').textContent = u.swDesc;
+  SW.res = []; $('#sw-status').textContent = 'Not run yet';
+  if (H.phase === 'idle') { H.preview = null; hIdlePrompt(); }
+  redrawAll();
+}
+for (const k of Object.keys(STIMS)) $('#pick-' + k).addEventListener('click', () => applyStim(k));
+function showTab(name) {
+  for (const t of ['sim', 'you']) { $('#tab-' + t).hidden = t !== name; $('#tabbtn-' + t).setAttribute('aria-selected', String(t === name)); }
+  if (name !== 'you' && H.phase !== 'idle') hFinish(false);
+  redrawAll();
+}
+$('#tabbtn-sim').addEventListener('click', () => showTab('sim'));
+$('#tabbtn-you').addEventListener('click', () => showTab('you'));
+function redrawAll() { if (!$('#tab-sim').hidden) { renderSim(); drawSweepCharts(); } else renderHuman(); }
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redrawAll);
+new MutationObserver(redrawAll).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+let rz; new ResizeObserver(() => { cancelAnimationFrame(rz); rz = requestAnimationFrame(redrawAll); }).observe(document.body);
+
+// open in a working state: a finished example run on the simulated observer
+drawIcon($('#icon-gabor'), 'gabor'); drawIcon($('#icon-ebb'), 'ebb');
+if (location.hash === '#you') showTab('you');
+applyStim('gabor');
+pmxChoose(S.pmx, 4);
+while (simStep());
+S.pmx.next = -1;
+STIM_READY = true; redrawAll(); simStop();
+</script>
+</body>
+</html>
